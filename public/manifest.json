@@ -1,0 +1,13 @@
+{
+  "name": "Mighty Miners",
+  "short_name": "Mighty Miners",
+  "description": "Поставки подтверждены. Деньги раньше.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f1",
+  "theme_color": "#31542d",
+  "lang": "ru",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
