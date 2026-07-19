@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Home, Plus, UserRound, Workflow } from "lucide-react";
+import { CircleDollarSign, Home, Plus, UserRound, Workflow } from "lucide-react";
 
 const items = [
   { href: "/", label: "Главная", icon: Home },
   { href: "/applications", label: "Заявки", icon: Workflow },
-  { href: "/documents", label: "Документы", icon: FileText },
+  { href: "/payments-monitoring", label: "Оплаты", icon: CircleDollarSign },
   { href: "/profile", label: "Профиль", icon: UserRound },
 ];
 

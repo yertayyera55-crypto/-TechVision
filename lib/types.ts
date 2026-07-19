@@ -33,6 +33,25 @@ export type ProfitabilityResultType = "profitable" | "low_margin" | "unprofitabl
 export type RiskLevel = "none" | "low" | "medium" | "high" | "critical";
 export type PaymentStatus = "waiting" | "partial" | "overdue" | "paid";
 
+export type PaymentMonitoringRiskLevel =
+  | "none"
+  | "low"
+  | "medium"
+  | "elevated"
+  | "high"
+  | "critical"
+  | "review";
+
+export type PaymentMonitoringStatus =
+  | "scheduled"
+  | "due_soon"
+  | "due_today"
+  | "overdue"
+  | "grace_period"
+  | "partial"
+  | "closed"
+  | "needs_review";
+
 export interface ApplicationDocument {
   id: string;
   type: DocumentType;
@@ -108,6 +127,51 @@ export interface DealEvent {
   description: string;
   timestamp: string;
   source: "Mighty Miners" | "Поставщик" | "Покупатель" | "Финансовый партнёр";
+}
+
+export interface PaymentEvent {
+  id: string;
+  dealId: string;
+  type: string;
+  title: string;
+  description: string;
+  amount?: number;
+  timestamp: string;
+  source: DealEvent["source"];
+}
+
+export interface PaymentMonitoringDeal {
+  id: string;
+  applicationId: string;
+  supplierName: string;
+  buyerName: string;
+  financialPartnerName: string;
+  invoiceNumber: string;
+  invoiceAmount: number;
+  financedAmount: number | null;
+  amountPaidByBuyer: number;
+  outstandingAmount: number;
+  deliveryDate: string;
+  confirmationDate: string;
+  financingDate: string;
+  paymentDueDate: string | null;
+  gracePeriodDays: number | null;
+  recourseDate: string | null;
+  lastPaymentDate: string | null;
+  closedAt: string | null;
+  factoringType: FactoringType;
+  paymentStatus: PaymentMonitoringStatus;
+  riskLevel: PaymentMonitoringRiskLevel;
+  reminderCount: number;
+  lastReminderAt: string | null;
+  recommendedReserve: number;
+  potentialRecourseAmount: number;
+  daysUntilPayment: number | null;
+  overdueDays: number;
+  daysUntilRecourse: number | null;
+  nextImportantEvent: string;
+  recommendedAction: string;
+  events: PaymentEvent[];
 }
 
 export interface DealMonitoring {

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ApplicationProvider } from "@/lib/application-store";
+import { PaymentMonitoringProvider } from "@/lib/payment-monitoring-store";
 
 export const metadata: Metadata = {
   title: { default: "Mighty Miners", template: "%s · Mighty Miners" },
@@ -19,7 +20,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ru" data-scroll-behavior="smooth">
       <body>
-        <ApplicationProvider>{children}</ApplicationProvider>
+        <ApplicationProvider>
+          <PaymentMonitoringProvider>{children}</PaymentMonitoringProvider>
+        </ApplicationProvider>
       </body>
     </html>
   );
