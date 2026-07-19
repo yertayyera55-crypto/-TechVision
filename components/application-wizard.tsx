@@ -9,7 +9,7 @@ import { FormField } from "@/components/form/form-field";
 import { StepIndicator } from "@/components/form/step-indicator";
 import { PrimaryButton, SecondaryButton, primaryLinkClass, secondaryLinkClass } from "@/components/ui/buttons";
 import { useApplications } from "@/lib/application-store";
-import { networkOptions } from "@/lib/demo-data";
+import { defaultContractConditions, networkOptions } from "@/lib/demo-data";
 import { calculateDays, formatCurrency, formatDate } from "@/lib/format";
 import { Application, ApplicationDocument, ApplicationDraft, DocumentType } from "@/lib/types";
 
@@ -77,16 +77,27 @@ export function ApplicationWizard() {
     const nextId = String(Math.max(...applications.map((item) => Number(item.id)), 125) + 1);
     const application: Application = {
       id: nextId,
+      supplierName: "Tea Local LLP",
+      buyerName: draft.network,
       network: draft.network,
       amount: Number(draft.amount),
+      costAmount: 0,
+      productionExpenses: 0,
       invoiceNumber: draft.invoiceNumber,
       deliveryDate: draft.deliveryDate,
+      paymentDueDate: draft.paymentDate,
       paymentDate: draft.paymentDate,
+      delayDays: termDays,
       termDays,
+      confirmationStatus: "waiting",
+      confirmationRequestedAt: new Date().toISOString(),
+      reminderCount: 0,
       status: "awaiting_confirmation",
       remainingDays: Math.max(0, termDays - 3),
       documents,
+      contractConditions: defaultContractConditions,
       createdAt: new Date().toISOString(),
+      financialDataCompleted: false,
     };
     addApplication(application);
     window.localStorage.removeItem(DRAFT_KEY);

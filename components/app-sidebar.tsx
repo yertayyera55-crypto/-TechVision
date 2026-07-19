@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, CircleHelp, FileText, Home, LogOut, Settings, UserRound, Workflow } from "lucide-react";
+import { Bell, CircleHelp, FileText, Home, LogOut, Settings, Truck, UserRound, Workflow } from "lucide-react";
 import { Logo } from "@/components/logo";
 
 const navigation = [
   { href: "/", label: "Главная", icon: Home },
+  { href: "/deliveries", label: "Поставки", icon: Truck },
   { href: "/applications", label: "Мои заявки", icon: Workflow },
   { href: "/documents", label: "Документы", icon: FileText },
   { href: "/notifications", label: "Уведомления", icon: Bell },

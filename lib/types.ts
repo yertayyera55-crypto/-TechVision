@@ -1,12 +1,37 @@
 export type ApplicationStatus =
   | "awaiting_confirmation"
-  | "precheck_passed"
+  | "clarification_required"
+  | "delivery_confirmed"
+  | "document_review"
+  | "additional_data"
+  | "ready_for_calculation"
+  | "ready_for_signing"
   | "transferred"
+  | "financing_received"
+  | "awaiting_buyer_payment"
+  | "partially_paid"
+  | "payment_overdue"
+  | "recourse_approaching"
+  | "closed"
+  | "precheck_passed"
   | "paid"
   | "rejected"
   | "draft";
 
+export type ConfirmationStatus =
+  | "not_sent"
+  | "waiting"
+  | "reminder_sent"
+  | "confirmed"
+  | "mismatch"
+  | "not_received";
+
 export type DocumentType = "invoice" | "bill" | "contract" | "acceptance";
+export type ContractAnswer = "yes" | "no" | "unsure";
+export type FactoringType = "recourse" | "non_recourse" | "partner_decides";
+export type ProfitabilityResultType = "profitable" | "low_margin" | "unprofitable";
+export type RiskLevel = "none" | "low" | "medium" | "high" | "critical";
+export type PaymentStatus = "waiting" | "partial" | "overdue" | "paid";
 
 export interface ApplicationDocument {
   id: string;
@@ -16,20 +41,106 @@ export interface ApplicationDocument {
   optional?: boolean;
 }
 
-export interface Application {
+export interface ContractConditions {
+  hasPaymentDelay: ContractAnswer;
+  paymentTermSpecified: ContractAnswer;
+  assignmentRestriction: ContractAnswer;
+  buyerConsentRequired: ContractAnswer;
+  offsetsAllowed: ContractAnswer;
+  acceptanceMethodSpecified: ContractAnswer;
+}
+
+export interface Delivery {
   id: string;
-  network: string;
-  amount: number;
+  supplierName: string;
+  buyerName: string;
   invoiceNumber: string;
+  amount: number;
+  costAmount: number;
+  productionExpenses: number;
   deliveryDate: string;
+  paymentDueDate: string;
+  delayDays: number;
+  confirmationStatus: ConfirmationStatus;
+  confirmationRequestedAt?: string;
+  confirmedAt?: string;
+  reminderCount: number;
+  lastReminderAt?: string;
+  confirmationComment?: string;
+  documents: ApplicationDocument[];
+  contractConditions: ContractConditions;
+  status: ApplicationStatus;
+}
+
+export interface FactoringOffer {
+  deliveryId: string;
+  financingPercentage: number;
+  financingAmount: number;
+  financingCost: number;
+  documentFees: number;
+  otherFees: number;
+  taxExpenses: number;
+  platformFee: number;
+  netAmount: number;
+  savedDays: number;
+  factoringType: FactoringType;
+  gracePeriodDays: number;
+}
+
+export interface ProfitabilityAnalysis {
+  revenue: number;
+  costAmount: number;
+  productionExpenses: number;
+  profitBeforeFactoring: number;
+  marginBeforeFactoring: number;
+  totalFactoringCost: number;
+  profitAfterFactoring: number;
+  marginAfterFactoring: number;
+  profitReduction: number;
+  result: ProfitabilityResultType;
+  warnings: string[];
+}
+
+export interface DealEvent {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  source: "Mighty Miners" | "Поставщик" | "Покупатель" | "Финансовый партнёр";
+}
+
+export interface DealMonitoring {
+  dealId: string;
+  paymentDueDate: string;
+  gracePeriodDays: number;
+  regressionDate: string;
+  financedAmount: number;
+  amountPaidByBuyer: number;
+  outstandingAmount: number;
+  potentialRecourseAmount: number;
+  recommendedReserve: number;
+  riskLevel: RiskLevel;
+  paymentStatus: PaymentStatus;
+  financedAt: string;
+  events: DealEvent[];
+}
+
+export interface Application extends Delivery {
+  network: string;
   paymentDate: string;
   termDays: number;
-  status: ApplicationStatus;
   remainingDays: number | null;
-  documents: ApplicationDocument[];
   createdAt: string;
-  confirmedAt?: string;
   transferredAt?: string;
+  financialDataCompleted: boolean;
+  factoringOffer?: FactoringOffer;
+  profitability?: ProfitabilityAnalysis;
+  selectedFactoringType?: FactoringType;
+  recourseConsent?: boolean;
+  dataTransferConsent?: boolean;
+  signedAt?: string;
+  monitoring?: DealMonitoring;
 }
 
 export interface ApplicationDraft {

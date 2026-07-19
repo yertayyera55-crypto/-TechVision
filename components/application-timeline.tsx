@@ -5,19 +5,32 @@ const timeline = [
   { title: "Заявка создана", note: "Данные поставки сохранены" },
   { title: "Документы загружены", note: "Комплект документов сформирован" },
   { title: "Ожидается подтверждение сети", note: "Одноразовая ссылка отправлена" },
-  { title: "Предварительная проверка", note: "Расчёт доступной суммы" },
-  { title: "Заявка готова к передаче партнёру", note: "Нужно согласие на передачу данных" },
-  { title: "Передано финансовому партнёру", note: "Заявка принята в рассмотрение" },
-  { title: "Решение партнёра", note: "Финальные условия определяет партнёр" },
+  { title: "Готовность сделки", note: "Документы и условия договора проверены" },
+  { title: "Расчёт выгоды", note: "Экономика факторинга сохранена" },
+  { title: "Подписание", note: "Выбран тип факторинга и поставлена demo-ЭЦП" },
+  { title: "Передано партнёру", note: "Данные отправлены с согласия поставщика" },
+  { title: "Мониторинг оплаты", note: "Контроль срока оплаты и регрессного риска" },
 ];
 
 const currentIndex: Record<ApplicationStatus, number> = {
   draft: 0,
   awaiting_confirmation: 2,
-  precheck_passed: 3,
-  transferred: 5,
-  paid: 6,
-  rejected: 6,
+  clarification_required: 2,
+  delivery_confirmed: 3,
+  document_review: 3,
+  additional_data: 3,
+  ready_for_calculation: 4,
+  precheck_passed: 4,
+  ready_for_signing: 5,
+  transferred: 6,
+  financing_received: 7,
+  awaiting_buyer_payment: 7,
+  partially_paid: 7,
+  payment_overdue: 7,
+  recourse_approaching: 7,
+  closed: 7,
+  paid: 7,
+  rejected: 7,
 };
 
 export function ApplicationTimeline({ status }: { status: ApplicationStatus }) {
@@ -25,7 +38,7 @@ export function ApplicationTimeline({ status }: { status: ApplicationStatus }) {
   return (
     <ol aria-label="Этапы заявки" className="relative">
       {timeline.map((item, index) => {
-        const complete = index < current || status === "paid";
+        const complete = index < current || status === "paid" || status === "closed";
         const active = index === current;
         return (
           <li key={item.title} className="relative grid grid-cols-[32px_1fr] gap-4 pb-7 last:pb-0">
