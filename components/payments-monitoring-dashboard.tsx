@@ -11,24 +11,36 @@ import { PaymentMonitoringSummary } from "@/components/payment-monitoring-summar
 import { PaymentMonitoringTable } from "@/components/payment-monitoring-table";
 import { SecondaryButton } from "@/components/ui/buttons";
 import { demoMonitoringRules } from "@/data/demo-monitoring-rules";
+import { useApplications } from "@/lib/application-store";
 import { requiresPaymentAttention } from "@/lib/calculate-payment-monitoring";
+import { paymentMonitoringDealFromApplication } from "@/lib/payment-monitoring-adapter";
 import { recordDealReminder } from "@/lib/payment-monitoring-actions";
 import { usePaymentMonitoring } from "@/lib/payment-monitoring-store";
 import { PaymentMonitoringDeal } from "@/lib/types";
 
 export function PaymentsMonitoringDashboard() {
   const { deals, hydrated, error, updateDeal, resetDeals, clearError } = usePaymentMonitoring();
+  const { applications } = useApplications();
   const [filter, setFilter] = useState<MonitoringFilter>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<MonitoringSort>("payment");
 
+  const allDeals = useMemo(() => {
+    const storedIds = new Set(deals.map((deal) => deal.id));
+    const applicationDeals = applications
+      .filter((application) => application.monitoring && !storedIds.has(application.id))
+      .map(paymentMonitoringDealFromApplication)
+      .filter((deal): deal is PaymentMonitoringDeal => deal !== null);
+    return [...deals, ...applicationDeals];
+  }, [applications, deals]);
+
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("ru");
-    return [...deals]
+    return [...allDeals]
       .filter((deal) => matchesFilter(deal, filter))
       .filter((deal) => !normalized || `${deal.buyerName} ${deal.invoiceNumber} ${deal.id}`.toLocaleLowerCase("ru").includes(normalized))
       .sort((a, b) => compareDeals(a, b, sort));
-  }, [deals, filter, query, sort]);
+  }, [allDeals, filter, query, sort]);
 
   const remind = async (deal: PaymentMonitoringDeal) => {
     await new Promise((resolve) => setTimeout(resolve, 550));
@@ -53,7 +65,7 @@ export function PaymentsMonitoringDashboard() {
     }
   };
 
-  return <div className="animate-rise"><header className="mb-7 flex flex-col gap-5 border-b border-line pb-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="eyebrow mb-2">Автоматический контроль сроков</p><h1 className="font-display text-4xl font-medium tracking-tight md:text-5xl">Контроль оплат</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted">Сделки отсортированы по следующему важному событию. Внимание бухгалтера требуется только там, где приближается оплата или возможный регресс.</p></div><SecondaryButton type="button" onClick={resetDemo}><RotateCcw className="h-4 w-4" /> Сбросить demo-данные</SecondaryButton></header>{error && <MonitoringErrorState message={error} onDismiss={clearError} />}<PaymentMonitoringSummary deals={deals} /><div className="mt-7"><AttentionTasks deals={deals} /></div><div className="mt-7"><PaymentMonitoringFilters filter={filter} query={query} sort={sort} onFilter={setFilter} onQuery={setQuery} onSort={setSort} /></div><div className="mt-5"><div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Реестр сделок</h2><p className="text-xs text-slate-500">{hydrated ? `Найдено: ${filtered.length}` : "Загрузка…"}</p></div>{filtered.length ? <><PaymentMonitoringTable deals={filtered} onRemind={remind} /><div className="grid gap-3 lg:hidden">{filtered.map((deal) => <PaymentMonitoringCard key={deal.id} deal={deal} onRemind={remind} />)}</div></> : <MonitoringEmptyState onReset={resetFilters} />}</div><p className="mt-6 text-xs leading-5 text-slate-500">Потенциальный регресс — предварительная оценка. Реальная сумма возврата определяется договором факторинга.</p></div>;
+  return <div className="animate-rise"><header className="mb-7 flex flex-col gap-5 border-b border-line pb-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="eyebrow mb-2">Автоматический контроль сроков</p><h1 className="font-display text-4xl font-medium tracking-tight md:text-5xl">Контроль оплат</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted">Сделки отсортированы по следующему важному событию. Внимание бухгалтера требуется только там, где приближается оплата или возможный регресс.</p></div><SecondaryButton type="button" onClick={resetDemo}><RotateCcw className="h-4 w-4" /> Сбросить demo-данные</SecondaryButton></header>{error && <MonitoringErrorState message={error} onDismiss={clearError} />}<PaymentMonitoringSummary deals={allDeals} /><div className="mt-7"><AttentionTasks deals={allDeals} /></div><div className="mt-7"><PaymentMonitoringFilters filter={filter} query={query} sort={sort} onFilter={setFilter} onQuery={setQuery} onSort={setSort} /></div><div className="mt-5"><div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Реестр сделок</h2><p className="text-xs text-slate-500">{hydrated ? `Найдено: ${filtered.length}` : "Загрузка…"}</p></div>{filtered.length ? <><PaymentMonitoringTable deals={filtered} onRemind={remind} /><div className="grid gap-3 lg:hidden">{filtered.map((deal) => <PaymentMonitoringCard key={deal.id} deal={deal} onRemind={remind} />)}</div></> : <MonitoringEmptyState onReset={resetFilters} />}</div><p className="mt-6 text-xs leading-5 text-slate-500">Потенциальный регресс — предварительная оценка. Реальная сумма возврата определяется договором факторинга.</p></div>;
 }
 
 function matchesFilter(deal: PaymentMonitoringDeal, filter: MonitoringFilter) {

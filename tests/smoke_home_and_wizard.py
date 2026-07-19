@@ -1,7 +1,9 @@
+import os
+
 from playwright.sync_api import expect, sync_playwright
 
 
-BASE_URL = "http://127.0.0.1:3000"
+BASE_URL = os.environ.get("BASE_URL", "http://127.0.0.1:3000")
 
 
 def assert_modal_in_viewport(page, dialog) -> None:
@@ -42,7 +44,7 @@ def run() -> None:
         page.get_by_role("button", name="Подтвердить поставку", exact=True).click()
         expect(page.get_by_role("heading", name="Поставка подтверждена", exact=True)).to_be_visible()
         page.reload()
-        expect(page.get_by_text("Повторное подтверждение по этой ссылке заблокировано.", exact=True)).to_be_visible()
+        expect(page.get_by_text("Ответ уже зафиксирован. Повторное подтверждение по этой ссылке заблокировано.", exact=True)).to_be_visible()
 
         # Готовность, прибыльность, регресс, согласие и demo-ЭЦП.
         page.goto(f"{BASE_URL}/applications/125")
@@ -74,27 +76,26 @@ def run() -> None:
         transfer_dialog.get_by_role("button", name="Подтвердить и передать", exact=True).click()
         expect(page.get_by_role("heading", name="Заявка передана финансовому партнёру", exact=True)).to_be_visible()
         page.get_by_role("link", name="Перейти в «Контроль сделки»", exact=True).click()
-        expect(page.get_by_role("heading", name="Контроль сделки", exact=True)).to_be_visible()
-        expect(page.get_by_text("Следующее важное событие: оплата покупателем через 21 день.", exact=True)).to_be_visible()
+        expect(page.get_by_role("heading", name="Green Market", exact=True)).to_be_visible()
+        expect(page.get_by_text("Оплата покупателем через 21 день.", exact=True)).to_be_visible()
 
         # Частичная оплата уменьшает долг и потенциальный регресс.
-        page.get_by_role("button", name="Отметить частичную оплату", exact=True).click()
+        page.get_by_role("button", name="Зафиксировать оплату", exact=True).click()
         payment_dialog = page.get_by_role("dialog", name="Зафиксировать оплату покупателя", exact=True)
         assert_modal_in_viewport(page, payment_dialog)
         payment_dialog.get_by_role("spinbutton", name="Сумма оплаты", exact=True).fill("500000")
         payment_dialog.get_by_role("textbox", name="Комментарий", exact=True).fill("Demo-частичная оплата")
         payment_dialog.get_by_role("button", name="Зафиксировать оплату", exact=True).click()
-        metrics = page.get_by_role("region", name="Ключевые показатели сделки", exact=True)
+        metrics = page.get_by_role("region", name="Параметры сделки", exact=True)
         expect(metrics.get_by_text("500 000 ₸", exact=True)).to_be_visible()
         expect(metrics.get_by_text("1 500 000 ₸", exact=True)).to_be_visible()
-        recourse = page.get_by_role("region", name="Риск возврата средств", exact=True)
+        recourse = page.get_by_role("region", name="Контроль возможного регресса", exact=True)
         expect(recourse.get_by_text("1 300 000 ₸", exact=True)).to_be_visible()
         expect(page.get_by_text("Частичная оплата получена", exact=True)).to_be_visible()
 
         # Полная оплата закрывает сделку; localStorage переживает reload.
+        page.once("dialog", lambda dialog: dialog.accept())
         page.get_by_role("button", name="Отметить полную оплату", exact=True).click()
-        full_dialog = page.get_by_role("dialog", name="Зафиксировать оплату покупателя", exact=True)
-        full_dialog.get_by_role("button", name="Зафиксировать полную оплату", exact=True).click()
         expect(page.get_by_role("heading", name="Покупатель полностью оплатил задолженность", exact=True)).to_be_visible()
         expect(page.get_by_text("Сделка закрыта", exact=True).first).to_be_visible()
         page.reload()
