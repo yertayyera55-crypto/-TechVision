@@ -12,6 +12,7 @@ import { PaymentStatusText, RiskStatusBadge } from "@/components/risk-status-bad
 import { EmptyState } from "@/components/ui/empty-state";
 import { PrimaryButton, SecondaryButton, secondaryLinkClass } from "@/components/ui/buttons";
 import { useApplications } from "@/lib/application-store";
+import { paymentMonitoringDealFromApplication } from "@/lib/payment-monitoring-adapter";
 import { changeDealGracePeriod, recordDealPayment, recordDealReminder } from "@/lib/payment-monitoring-actions";
 import { usePaymentMonitoring } from "@/lib/payment-monitoring-store";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -20,8 +21,11 @@ import { Application, PaymentMonitoringDeal, PaymentStatus, RiskLevel } from "@/
 export function DealMonitoringDashboard({ id }: { id: string }) {
   const { deals, hydrated, updateDeal } = usePaymentMonitoring();
   const { applications, updateApplication } = useApplications();
-  const deal = useMemo(() => deals.find((item) => item.id === id), [deals, id]);
   const application = useMemo(() => applications.find((item) => item.id === id), [applications, id]);
+  const deal = useMemo(
+    () => deals.find((item) => item.id === id) ?? (application ? paymentMonitoringDealFromApplication(application) ?? undefined : undefined),
+    [application, deals, id],
+  );
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [closing, setClosing] = useState(false);
 

@@ -62,8 +62,9 @@ export function PaymentMonitoringProvider({ children }: { children: React.ReactN
 
   const updateDeal = useCallback((id: string, nextDeal: PaymentMonitoringDeal) => {
     const exists = dealsRef.current.some((deal) => deal.id === id);
-    if (!exists) throw new Error(`Сделка ${id} не найдена.`);
-    commit(dealsRef.current.map((deal) => (deal.id === id ? nextDeal : deal)));
+    commit(exists
+      ? dealsRef.current.map((deal) => (deal.id === id ? nextDeal : deal))
+      : [nextDeal, ...dealsRef.current]);
   }, [commit]);
 
   const resetDeals = useCallback(() => {
