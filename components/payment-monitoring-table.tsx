@@ -1,0 +1,18 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { CalendarClock, ChevronRight } from "lucide-react";
+import { NextActionCell } from "@/components/next-action-cell";
+import { PaymentStatusText, RiskStatusBadge } from "@/components/risk-status-badge";
+import { formatCurrency, formatDate } from "@/lib/format";
+import { PaymentMonitoringDeal } from "@/lib/types";
+
+export function PaymentMonitoringTable({ deals, onRemind }: { deals: PaymentMonitoringDeal[]; onRemind: (deal: PaymentMonitoringDeal) => Promise<void> }) {
+  const router = useRouter();
+  const open = (id: string) => router.push(`/deals/${id}/monitoring`);
+  return <div className="hidden overflow-x-auto rounded-lg border border-line bg-paper lg:block"><table className="w-full min-w-[1220px] border-collapse text-left"><thead><tr className="border-b border-line bg-[#faf9f5] text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500"><th className="px-4 py-3">Сделка / документ</th><th className="px-4 py-3">Покупатель / партнёр</th><th className="px-4 py-3">Суммы сделки</th><th className="px-4 py-3">Оплата покупателя</th><th className="px-4 py-3">Ключевые даты</th><th className="px-4 py-3">Статус и риск</th><th className="px-4 py-3">Что сделать</th><th className="w-10"><span className="sr-only">Открыть</span></th></tr></thead><tbody className="divide-y divide-line">{deals.map((deal) => <tr key={deal.id} tabIndex={0} role="link" aria-label={`Открыть сделку №${deal.id}`} onClick={() => open(deal.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(deal.id); } }} className="group align-top transition hover:bg-moss-50/35 focus:bg-moss-50/35 focus:outline-none"><td className="px-4 py-4"><p className="text-sm font-semibold text-ink">№{deal.id}</p><p className="mt-1 text-xs text-slate-500">{deal.invoiceNumber}</p></td><td className="px-4 py-4"><p className="text-sm font-semibold text-ink">{deal.buyerName}</p><p className="mt-1 text-xs text-slate-500">{deal.financialPartnerName}</p></td><td className="px-4 py-4"><p className="text-xs text-slate-500">Счёт · <span className="font-semibold text-ink">{formatCurrency(deal.invoiceAmount)}</span></p><p className="mt-1 text-xs text-slate-500">Финансирование · <span className="font-semibold text-ink">{deal.financedAmount === null ? "Не указано" : formatCurrency(deal.financedAmount)}</span></p></td><td className="px-4 py-4"><p className="text-xs text-slate-500">Оплачено · <span className="font-semibold text-ink">{formatCurrency(deal.amountPaidByBuyer)}</span></p><p className="mt-1 text-xs text-slate-500">Остаток · <span className="font-semibold text-ink">{formatCurrency(deal.outstandingAmount)}</span></p></td><td className="px-4 py-4"><DateLine label="Оплата" date={deal.paymentDueDate} /><DateLine label={`Регресс · ${deal.gracePeriodDays ?? "—"} дн.`} date={deal.recourseDate} /><p className="mt-2 flex max-w-[220px] items-start gap-1.5 text-[11px] leading-4 text-slate-500"><CalendarClock className="mt-0.5 h-3.5 w-3.5 shrink-0" />{deal.nextImportantEvent}</p></td><td className="px-4 py-4"><PaymentStatusText status={deal.paymentStatus} /><div className="mt-2"><RiskStatusBadge riskLevel={deal.riskLevel} /></div></td><td className="px-4 py-4"><NextActionCell deal={deal} onRemind={onRemind} compact /></td><td className="px-2 py-4 text-slate-300"><ChevronRight className="h-5 w-5 transition group-hover:translate-x-0.5 group-hover:text-moss-700" /></td></tr>)}</tbody></table></div>;
+}
+
+function DateLine({ label, date }: { label: string; date: string | null }) {
+  return <p className="text-xs text-slate-500">{label} · <span className="font-semibold text-ink">{date ? formatDate(date) : "Не указана"}</span></p>;
+}
