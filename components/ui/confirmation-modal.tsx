@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/buttons";
+import { ModalPortal } from "@/components/ui/modal-portal";
 
 export function ConfirmationModal({ open, onClose, onConfirm, loading = false }: { open: boolean; onClose: () => void; onConfirm: () => void; loading?: boolean }) {
   const [consent, setConsent] = useState(false);
@@ -30,7 +31,7 @@ export function ConfirmationModal({ open, onClose, onConfirm, loading = false }:
   };
 
   if (!open) return null;
-  return (
+  return <ModalPortal>
     <div className="fixed inset-0 z-[80] flex animate-fade items-end justify-center bg-ink/45 p-0 sm:items-center sm:p-4" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && close()}>
       <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="w-full max-w-lg animate-scale-in rounded-t-xl border border-line bg-paper p-5 shadow-lift sm:rounded-xl sm:p-7">
         <div className="flex items-start justify-between gap-4">
@@ -45,5 +46,5 @@ export function ConfirmationModal({ open, onClose, onConfirm, loading = false }:
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><SecondaryButton type="button" onClick={close}>Отмена</SecondaryButton><PrimaryButton type="button" disabled={!consent} loading={loading} onClick={onConfirm}>Подтвердить и передать</PrimaryButton></div>
       </div>
     </div>
-  );
+  </ModalPortal>;
 }
