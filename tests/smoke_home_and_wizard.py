@@ -4,6 +4,16 @@ from playwright.sync_api import expect, sync_playwright
 BASE_URL = "http://127.0.0.1:3000"
 
 
+def assert_modal_in_viewport(page, dialog) -> None:
+    """Регрессия: transform у длинной страницы не должен уводить fixed-modal вниз."""
+    box = dialog.bounding_box()
+    viewport = page.viewport_size
+    assert box is not None and viewport is not None
+    assert box["y"] >= 0
+    assert box["y"] + box["height"] <= viewport["height"]
+    assert dialog.evaluate("element => element.parentElement?.parentElement === document.body")
+
+
 def run() -> None:
     """Проверяет полный P0-путь на чистых demo-данных."""
     errors: list[str] = []
@@ -54,12 +64,14 @@ def run() -> None:
         expect(page.get_by_text("Demo-подпись добавлена", exact=True)).to_be_visible()
 
         page.get_by_role("button", name="Передать заявку партнёру", exact=True).click()
-        page.get_by_role(
+        transfer_dialog = page.get_by_role("dialog", name="Подтвердите согласие", exact=True)
+        assert_modal_in_viewport(page, transfer_dialog)
+        transfer_dialog.get_by_role(
             "checkbox",
             name="Я согласен на передачу данных для рассмотрения заявки.",
             exact=True,
         ).check()
-        page.get_by_role("button", name="Подтвердить и передать", exact=True).click()
+        transfer_dialog.get_by_role("button", name="Подтвердить и передать", exact=True).click()
         expect(page.get_by_role("heading", name="Заявка передана финансовому партнёру", exact=True)).to_be_visible()
         page.get_by_role("link", name="Перейти в «Контроль сделки»", exact=True).click()
         expect(page.get_by_role("heading", name="Контроль сделки", exact=True)).to_be_visible()
@@ -68,6 +80,7 @@ def run() -> None:
         # Частичная оплата уменьшает долг и потенциальный регресс.
         page.get_by_role("button", name="Отметить частичную оплату", exact=True).click()
         payment_dialog = page.get_by_role("dialog", name="Зафиксировать оплату покупателя", exact=True)
+        assert_modal_in_viewport(page, payment_dialog)
         payment_dialog.get_by_role("spinbutton", name="Сумма оплаты", exact=True).fill("500000")
         payment_dialog.get_by_role("textbox", name="Комментарий", exact=True).fill("Demo-частичная оплата")
         payment_dialog.get_by_role("button", name="Зафиксировать оплату", exact=True).click()
