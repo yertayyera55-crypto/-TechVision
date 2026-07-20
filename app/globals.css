@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --focus: #476f3d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #f7f6f1;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 82% 0%, rgba(228, 237, 219, 0.4), transparent 26rem),
+    #f7f6f1;
+  color: #18202b;
+  font-family: Inter, "Avenir Next", "Segoe UI", Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a[href],
+select:not(:disabled),
+input[type="file"]:not(:disabled) {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(71, 111, 61, 0.28);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #ccddbd;
+  color: #18202b;
+}
+
+@layer components {
+  .control {
+    @apply min-h-12 w-full rounded-lg border border-line bg-paper px-3.5 text-sm text-ink shadow-sm transition placeholder:text-slate-400 hover:border-slate-300 focus:border-moss-600 focus:outline-none focus:ring-2 focus:ring-moss-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400;
+  }
+
+  .section-title {
+    @apply text-xl font-semibold tracking-tight text-ink md:text-2xl;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-moss-700;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
