@@ -58,6 +58,9 @@ export interface ApplicationDocument {
   label: string;
   name: string;
   optional?: boolean;
+  mimeType?: string;
+  size?: number;
+  storageKind?: "indexeddb" | "demo";
 }
 
 export interface ContractConditions {

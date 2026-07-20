@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle2, CircleHelp, FileText, Save } from "lucide-react";
 import { useMemo, useState } from "react";
 import { DealDateTimeline } from "@/components/deal-date-timeline";
+import { DealActionExplanations } from "@/components/deal-action-explanations";
 import { DealEventTimeline } from "@/components/deal-event-timeline";
 import { PaymentInput, PaymentModal } from "@/components/payment-modal";
 import { RecourseRiskPanel } from "@/components/recourse-risk-panel";
@@ -94,7 +95,7 @@ function GracePeriodEditor({ value, onSave }: { value: number | null; onSave: (d
       setLoading(false);
     }
   };
-  return <section className="mt-8 border-t border-line pt-6"><h2 className="text-sm font-semibold">Grace period</h2><p className="mt-1 text-xs leading-5 text-slate-500">Фактический льготный период определяется договором с финансовым партнёром.</p><label className="mt-4 block"><span className="sr-only">Льготный период</span><select className="control" value={choice} onChange={(event) => setChoice(event.target.value)}>{presets.map((days) => <option key={days} value={days}>{days} дней</option>)}<option value="custom">Другое значение</option></select></label>{choice === "custom" && <label className="mt-3 block"><span className="sr-only">Другое количество дней</span><input type="number" min="0" max="365" className="control" value={custom} onChange={(event) => setCustom(event.target.value)} placeholder="Количество дней" /></label>}{error && <p role="alert" className="mt-2 text-xs font-medium text-red-700">{error}</p>}<PrimaryButton type="button" loading={loading} onClick={save} className="mt-3 w-full"><Save className="h-4 w-4" /> Сохранить срок</PrimaryButton></section>;
+  return <><DealActionExplanations /><section className="mt-8 border-t border-line pt-6"><h2 className="text-sm font-semibold">Grace period (льготный период)</h2><p className="mt-1 text-xs leading-5 text-slate-500">Это дополнительные дни после срока оплаты по договору: платёж уже просрочен, но возможный регресс ещё не наступил. Фактический срок определяется договором с финансовым партнёром.</p><label className="mt-4 block"><span className="sr-only">Льготный период</span><select className="control" value={choice} onChange={(event) => setChoice(event.target.value)}>{presets.map((days) => <option key={days} value={days}>{days} дней</option>)}<option value="custom">Другое значение</option></select></label>{choice === "custom" && <label className="mt-3 block"><span className="sr-only">Другое количество дней</span><input type="number" min="0" max="365" className="control" value={custom} onChange={(event) => setCustom(event.target.value)} placeholder="Количество дней" /></label>}{error && <p role="alert" className="mt-2 text-xs font-medium text-red-700">{error}</p>}<PrimaryButton type="button" loading={loading} onClick={save} className="mt-3 w-full"><Save className="h-4 w-4" /> Сохранить срок</PrimaryButton></section></>;
 }
 
 function SummaryItem({ label, value }: { label: string; value: string }) { return <div className="min-w-0 px-4 py-4 sm:px-5"><dt className="text-xs text-slate-500">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-ink">{value}</dd></div>; }

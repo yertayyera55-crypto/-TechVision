@@ -17,7 +17,7 @@ export function PreliminaryOffer({ application, onTransfer }: { application: App
         <OfferRow label="Сумма поставки" value={formatCurrency(application.amount)} />
         <OfferRow label="Предварительно доступно" value={formatCurrency(available)} strong />
         <OfferRow label="Стоимость финансирования" value={formatCurrency(cost)} />
-        <OfferRow label="Комиссия Mighty Miners" value="0 ₸" />
+        <OfferRow label="Комиссия Marti" value="0 ₸" />
       </dl>
       <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-600"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-moss-700" />Это предварительный расчёт. Окончательные условия определяет финансовый партнёр.</p>
       {showFormula && <div className="mt-4 animate-scale-in border-l-2 border-moss-500 pl-4 text-xs leading-5 text-slate-600">В demo используется фиксированная ставка: доступная сумма = сумма поставки × 97,0411%. В production ставку и условия вернёт финансовый партнёр.</div>}

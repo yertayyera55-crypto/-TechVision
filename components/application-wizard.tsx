@@ -157,12 +157,12 @@ function StepDates({ draft, errors, update, termDays }: { draft: ApplicationDraf
 
 function StepDocuments({ draft, error, update }: { draft: ApplicationDraft; error?: string; update: UpdateDraft }) {
   const setDocument = (type: DocumentType, document?: ApplicationDocument) => update("documents", { ...draft.documents, [type]: document });
-  return <div><StepHeading number="03" title="Документы" text="Файлы сохраняются как метаданные в demo-режиме." /><div className="mt-7 grid gap-3">
+  return <div><StepHeading number="03" title="Документы" text="Файлы сохраняются в этом браузере и доступны после обновления страницы." /><div className="mt-7 grid gap-3">
     <FileUploader type="invoice" label="Накладная" value={draft.documents.invoice} onChange={(file) => setDocument("invoice", file)} />
     <FileUploader type="bill" label="Счёт-фактура" value={draft.documents.bill} onChange={(file) => setDocument("bill", file)} />
     <FileUploader type="contract" label="Договор" value={draft.documents.contract} onChange={(file) => setDocument("contract", file)} />
     <FileUploader type="acceptance" label="Акт приёма" optional value={draft.documents.acceptance} onChange={(file) => setDocument("acceptance", file)} />
-  </div>{error && <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p>}<p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> В production файлы будут загружаться в закрытый Supabase Storage bucket; сейчас для демонстрации сохраняются только имена.</p></div>;
+  </div>{error && <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p>}<p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> Для MVP содержимое хранится локально в IndexedDB этого браузера и не переносится на другое устройство. В production оно будет храниться в закрытом Storage с контролем доступа.</p></div>;
 }
 
 function StepReview({ draft, termDays, documentsCount }: { draft: ApplicationDraft; termDays: number; documentsCount: number }) {

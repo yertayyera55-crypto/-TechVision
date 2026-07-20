@@ -4,7 +4,7 @@ import { ApplicationProvider } from "@/lib/application-store";
 import { PaymentMonitoringProvider } from "@/lib/payment-monitoring-store";
 
 export const metadata: Metadata = {
-  title: { default: "Mighty Miners", template: "%s · Mighty Miners" },
+  title: { default: "Marti", template: "%s · Marti" },
   description: "Платформа ранней оплаты для локальных поставщиков",
   manifest: "/manifest.json",
   icons: { icon: "/icon.svg", apple: "/icon.svg" },

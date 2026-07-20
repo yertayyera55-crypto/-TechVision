@@ -4,7 +4,7 @@ from playwright.sync_api import expect, sync_playwright
 
 
 BASE_URL = os.environ.get("BASE_URL", "http://127.0.0.1:3000")
-STORAGE_KEY = "mighty-miners-payment-monitoring-v1"
+STORAGE_KEY = "mighty-miners-payment-monitoring-v2"
 
 
 def run() -> None:
@@ -21,10 +21,10 @@ def run() -> None:
         page.wait_for_load_state("networkidle")
 
         expect(page.get_by_role("heading", name="Контроль оплат", exact=True)).to_be_visible()
-        expect(page.locator("tbody tr")).to_have_count(8)
+        expect(page.locator("tbody tr")).to_have_count(4)
 
         page.get_by_role("button", name="Требуют внимания", exact=True).click()
-        expect(page.locator("tbody tr")).to_have_count(5)
+        expect(page.locator("tbody tr")).to_have_count(3)
 
         page.get_by_role("button", name="Просрочено", exact=True).click()
         expect(page.locator("tbody tr")).to_have_count(2)
@@ -67,9 +67,9 @@ def run() -> None:
         page.set_viewport_size({"width": 375, "height": 812})
         page.goto(f"{BASE_URL}/payments-monitoring")
         page.wait_for_load_state("networkidle")
-        expect(page.locator("article")).to_have_count(8)
+        expect(page.locator("article")).to_have_count(4)
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
-        page.locator("article").filter(has_text="Сделка №203").click()
+        page.locator("article").filter(has_text="Сделка №118").click()
         page.get_by_role("button", name="Зафиксировать оплату", exact=True).click()
         mobile_dialog = page.get_by_role("dialog", name="Зафиксировать оплату покупателя", exact=True)
         box = mobile_dialog.bounding_box()
@@ -87,7 +87,7 @@ def run() -> None:
         page.goto(f"{BASE_URL}/payments-monitoring")
         recovery_alert = page.get_by_role("alert").filter(has_text="Контроль оплат восстановлен из demo-данных")
         expect(recovery_alert).to_contain_text("Показаны исходные demo-сделки")
-        expect(page.locator("article")).to_have_count(8)
+        expect(page.locator("article")).to_have_count(4)
 
         page.once("dialog", lambda dialog: dialog.accept())
         page.get_by_role("button", name="Сбросить demo-данные", exact=True).click()
