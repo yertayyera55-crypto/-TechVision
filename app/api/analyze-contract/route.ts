@@ -27,8 +27,19 @@ const analysisSchema = {
     "paymentDueDate",
     "paymentTermDays",
     "contractNumber",
+    "contractDate",
     "paymentTerms",
     "supplySubject",
+    "productCategory",
+    "categoryConfidence",
+    "deliveryMethod",
+    "delayTrigger",
+    "acceptanceTerms",
+    "returnsTerms",
+    "deductions",
+    "assignmentTerms",
+    "requiredProductDocuments",
+    "evidence",
     "factoringReady",
     "missingData",
     "notes",
@@ -43,8 +54,19 @@ const analysisSchema = {
     paymentDueDate: { type: ["string", "null"] },
     paymentTermDays: { type: ["number", "null"] },
     contractNumber: { type: ["string", "null"] },
+    contractDate: { type: ["string", "null"] },
     paymentTerms: { type: ["string", "null"] },
     supplySubject: { type: ["string", "null"] },
+    productCategory: { type: ["string", "null"], enum: ["tea_coffee", "meat_chilled", "dairy", "produce", "grocery", "frozen", "confectionery", "beverages", "other", null] },
+    categoryConfidence: { type: ["number", "null"] },
+    deliveryMethod: { type: ["string", "null"] },
+    delayTrigger: { type: ["string", "null"] },
+    acceptanceTerms: { type: ["string", "null"] },
+    returnsTerms: { type: ["string", "null"] },
+    deductions: { type: ["string", "null"] },
+    assignmentTerms: { type: ["string", "null"] },
+    requiredProductDocuments: { type: "array", items: { type: "string" } },
+    evidence: { type: "array", items: { type: "object", additionalProperties: false, required: ["field", "excerpt"], properties: { field: { type: "string" }, excerpt: { type: "string" } } } },
     factoringReady: { type: "boolean" },
     missingData: { type: "array", items: { type: "string" } },
     notes: { type: "array", items: { type: "string" } },
@@ -62,6 +84,11 @@ const fixedAnalysisPrompt = `Проанализируй текст догово�
 - contractNumber — номер договора поставки, если он указан.
 - paymentTerms — коротко передай условия оплаты из договора, без интерпретации.
 - supplySubject — коротко передай предмет поставки из договора, если он указан.
+- productCategory — предварительно классифицируй товар только в одну из категорий: tea_coffee, meat_chilled, dairy, produce, grocery, frozen, confectionery, beverages, other. Если предмет не найден, верни null.
+- categoryConfidence — уверенность классификации от 0 до 100; без предмета поставки верни null.
+- deliveryMethod, delayTrigger, acceptanceTerms, returnsTerms, deductions, assignmentTerms — коротко извлеки соответствующие договорные условия или null.
+- requiredProductDocuments — только документы, прямо упомянутые в договоре для товара или приёмки.
+- evidence — до 8 коротких фрагментов договора (не больше 160 символов каждый) с полем field. Не включай реквизиты физических лиц.
 - network — название торговой сети или покупателя, если оно указано.
 - factoringReady=false, если для предварительной заявки не хватает существенных данных. Это не решение о финансировании.
 - notes — короткие замечания без персональных данных и без копирования длинных фрагментов договора.
@@ -207,6 +234,11 @@ function validateAnalysis(value: unknown): ContractAnalysisResult {
   const numberOrNull = (key: string) => value[key] === null || typeof value[key] === "number" && Number.isFinite(value[key]) ? value[key] as number | null : invalid();
   const arrayOfStrings = (key: string) => Array.isArray(value[key]) && value[key].every((item) => typeof item === "string") ? value[key] as string[] : invalid();
   if (typeof value.factoringReady !== "boolean") throw new ValidationError();
+  const category = stringOrNull("productCategory");
+  const allowedCategories = ["tea_coffee", "meat_chilled", "dairy", "produce", "grocery", "frozen", "confectionery", "beverages", "other"] as const;
+  if (category !== null && !allowedCategories.some((item) => item === category)) throw new ValidationError();
+  const categoryConfidence = numberOrNull("categoryConfidence");
+  if (categoryConfidence !== null && (categoryConfidence < 0 || categoryConfidence > 100)) throw new ValidationError();
   const result: ContractAnalysisResult = {
     supplierName: stringOrNull("supplierName"),
     buyerName: stringOrNull("buyerName"),
@@ -217,13 +249,24 @@ function validateAnalysis(value: unknown): ContractAnalysisResult {
     paymentDueDate: stringOrNull("paymentDueDate"),
     paymentTermDays: numberOrNull("paymentTermDays"),
     contractNumber: stringOrNull("contractNumber"),
+    contractDate: stringOrNull("contractDate"),
     paymentTerms: stringOrNull("paymentTerms"),
     supplySubject: stringOrNull("supplySubject"),
+    productCategory: category as ContractAnalysisResult["productCategory"],
+    categoryConfidence,
+    deliveryMethod: stringOrNull("deliveryMethod"),
+    delayTrigger: stringOrNull("delayTrigger"),
+    acceptanceTerms: stringOrNull("acceptanceTerms"),
+    returnsTerms: stringOrNull("returnsTerms"),
+    deductions: stringOrNull("deductions"),
+    assignmentTerms: stringOrNull("assignmentTerms"),
+    requiredProductDocuments: arrayOfStrings("requiredProductDocuments"),
+    evidence: Array.isArray(value.evidence) && value.evidence.length <= 8 && value.evidence.every((item) => isRecord(item) && typeof item.field === "string" && typeof item.excerpt === "string") ? value.evidence.map((item) => ({ field: String((item as Record<string, unknown>).field), excerpt: String((item as Record<string, unknown>).excerpt).slice(0, 160) })) : invalid(),
     factoringReady: value.factoringReady,
     missingData: arrayOfStrings("missingData"),
     notes: arrayOfStrings("notes"),
   };
-  for (const date of [result.deliveryDate, result.paymentDueDate]) {
+  for (const date of [result.deliveryDate, result.paymentDueDate, result.contractDate]) {
     if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new ValidationError();
   }
   return result;

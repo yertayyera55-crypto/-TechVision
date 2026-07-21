@@ -1,17 +1,23 @@
 import { CompanyProfile } from "@/lib/types";
 
-export const COMPANY_PROFILE_KEY = "flowfactor-company-profile-v2";
+export const COMPANY_PROFILE_KEY = "flowfactor-company-profile-v3";
 const LEGACY_PROFILE_KEY = "mighty-miners-profile-v1";
 
 export const DEFAULT_COMPANY_PROFILE: CompanyProfile = {
   company: "ТОО «Arman Tea»",
   bin: "000000000000",
+  director: "Айдана Серикова",
   industry: "Производство и поставка чая",
+  businessDescription: "Локальный производитель фасованного чая для торговых сетей Казахстана",
+  mainProducts: "Чёрный и зелёный фасованный чай",
+  monthlyTurnover: "10 000 000 ₸ в месяц",
   annualTurnover: "120 000 000 ₸ в год",
   yearsInBusiness: "4 года",
   contact: "Демо-профиль",
   phone: "+7 700 000 00 00",
   email: "demo@armantea.example",
+  mainBuyer: "ТОО «Aspan Market»",
+  bankDetails: "АО «Демо Банк», БИК DEMOKZKX",
   iban: "KZ00 DEMO 0000 0000 0000",
 };
 

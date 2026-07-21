@@ -1,40 +1,21 @@
 "use client";
 
-import { CheckCircle2, Calculator, ChevronDown, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ChevronDown, CircleAlert, Scale, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { PrimaryButton, TextLink } from "@/components/ui/buttons";
 import { formatCurrency } from "@/lib/format";
-import { Application } from "@/lib/types";
+import { Application, PartnerOffer } from "@/lib/types";
 
-export function PreliminaryOffer({ application, onAccept, loading = false }: { application: Application; onAccept: () => void; loading?: boolean }) {
-  const [showFormula, setShowFormula] = useState(false);
-  if (!application.factoringOffer) return null;
-
-  const offer = application.factoringOffer;
-  const commission = offer.financingCost + offer.documentFees + offer.otherFees + offer.taxExpenses + offer.platformFee;
-  const reserve = Math.max(0, application.amount - offer.financingAmount);
-  const typeDescription = offer.factoringType === "non_recourse"
-    ? "Без регресса: в рамках демосценария риск неплатежа покупателя несёт FlowFactor."
-    : "С регрессом: при длительной просрочке покупателя FlowFactor может потребовать возврат финансирования в соответствии с условиями договора.";
-
-  return <section aria-labelledby="offer-title" className="border-y border-moss-200 bg-moss-50/50 px-4 py-6 sm:rounded-lg sm:border sm:p-6">
-    <div className="flex items-start gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper text-moss-700 ring-1 ring-moss-200"><Calculator className="h-5 w-5" /></span><div><p className="eyebrow mb-1">FlowFactor · учебный MVP</p><h2 id="offer-title" className="text-xl font-semibold text-ink">Предварительное демонстрационное предложение</h2><p className="mt-1 text-sm text-slate-600">Предварительно соответствует условиям по данным заявки. Это не банковское одобрение.</p></div></div>
-    <dl className="mt-6 divide-y divide-moss-200/70 border-y border-moss-200/70">
-      <OfferRow label="Сумма денежного требования" value={formatCurrency(application.amount)} />
-      <OfferRow label="Процент финансирования" value={`${offer.financingPercentage}%`} />
-      <OfferRow label="Сумма первоначального финансирования" value={formatCurrency(offer.financingAmount)} />
-      <OfferRow label="Комиссия FlowFactor" value={formatCurrency(commission)} />
-      <OfferRow label="Поставщик получит сейчас" value={formatCurrency(offer.netAmount)} strong />
-      <OfferRow label="Резерв после оплаты покупателя" value={formatCurrency(reserve)} />
-      <OfferRow label="Срок оплаты покупателем" value={`${application.termDays} дней · ${new Intl.DateTimeFormat("ru-RU").format(new Date(`${application.paymentDueDate}T00:00:00`))}`} />
-      <OfferRow label="Тип факторинга" value={offer.factoringType === "non_recourse" ? "Без регресса" : "С регрессом"} />
-    </dl>
-    <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-600"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-moss-700" />{typeDescription}</p>
-    {showFormula && <div className="mt-4 animate-scale-in border-l-2 border-moss-500 pl-4 text-xs leading-5 text-slate-600">В демосценарии: первоначальное финансирование = требование × {offer.financingPercentage}%, комиссия FlowFactor = требование × 3%, сумма сейчас = первоначальное финансирование − комиссия. Финальные условия реального продукта определялись бы после проверки документов.</div>}
-    <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap"><PrimaryButton type="button" loading={loading} disabled={loading} onClick={onAccept}><CheckCircle2 className="h-4 w-4" /> Принять демопредложение</PrimaryButton><TextLink type="button" onClick={() => setShowFormula((value) => !value)}>Как рассчитана сумма? <ChevronDown className={`h-4 w-4 transition ${showFormula ? "rotate-180" : ""}`} /></TextLink></div>
+export function PreliminaryOffer({ application, onAccept, loading = false }: { application: Application; onAccept: (offer?: PartnerOffer) => void; loading?: boolean }) {
+  const [showRules, setShowRules] = useState(false);
+  const partnerOffers = application.partnerOffers;
+  if (partnerOffers?.length) return <section aria-labelledby="offers-title"><div className="mb-5 flex items-start gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-moss-50 text-moss-700 ring-1 ring-moss-200"><Scale className="h-5 w-5" /></span><div><p className="eyebrow mb-1">Сравнение по синтетическим критериям</p><h2 id="offers-title" className="text-2xl font-semibold text-ink">Демонстрационные предложения</h2><p className="mt-1 text-sm leading-6 text-slate-600">Это не оферта и не банковское одобрение. Реальный партнёр принимает решение после собственной проверки.</p></div></div>
+    <div className="grid gap-4 lg:grid-cols-3">{partnerOffers.map((offer) => <article key={offer.id} className={`flex flex-col border p-5 ${offer.eligible ? "border-moss-200 bg-moss-50/35" : "border-line bg-slate-50 opacity-80"}`}><div><div className="flex items-start justify-between gap-3"><div><h3 className="text-lg font-semibold text-ink">{offer.partnerName}</h3><p className="mt-1 text-xs leading-5 text-slate-500">{offer.description}</p></div>{offer.eligible ? <CheckCircle2 className="h-5 w-5 shrink-0 text-moss-700" /> : <CircleAlert className="h-5 w-5 shrink-0 text-amber-700" />}</div><dl className="mt-5 divide-y divide-line"><OfferRow label="Требование" value={formatCurrency(application.receivable?.confirmedReceivable ?? application.amount)} /><OfferRow label="Получить сейчас" value={formatCurrency(offer.financingAmount)} strong /><OfferRow label="Финансирование" value={`${offer.financingPercentage}%`} /><OfferRow label="Демо-стоимость" value={formatCurrency(offer.cost)} /><OfferRow label="Чистая сумма" value={formatCurrency(offer.netAmount)} /><OfferRow label="Тип" value={offer.factoringType === "non_recourse" ? "Без регресса" : "С регрессом"} /></dl><ul className="mt-4 space-y-2">{offer.reasons.map((reason) => <li key={reason} className={`flex gap-2 text-xs leading-5 ${offer.eligible ? "text-slate-600" : "text-amber-900"}`}><span aria-hidden="true">•</span>{reason}</li>)}</ul></div><PrimaryButton type="button" className="mt-5 w-full" disabled={!offer.eligible || loading} loading={loading && offer.eligible} onClick={() => onAccept(offer)}>{offer.eligible ? "Выбрать предложение" : "Не подходит по демо-правилам"}</PrimaryButton></article>)}</div>
+    <div className="mt-5 border border-line bg-paper p-4"><TextLink type="button" onClick={() => setShowRules((value) => !value)}>Как работает подбор? <ChevronDown className={`h-4 w-4 transition ${showRules ? "rotate-180" : ""}`} /></TextLink>{showRules && <p className="mt-3 text-xs leading-5 text-slate-600">ИИ только извлекает сведения и предварительно определяет категорию. Затем приложение сопоставляет сумму требования, срок отсрочки, подтверждение приёмки, скоропортящуюся категорию и документы с заранее заданными критериями вымышленных партнёров. Ставки и критерии не относятся к реальным организациям.</p>}</div>
   </section>;
+  if (!application.factoringOffer) return null;
+  const offer = application.factoringOffer;
+  return <section className="border-y border-moss-200 bg-moss-50/50 px-4 py-6 sm:rounded-lg sm:border sm:p-6"><p className="eyebrow mb-1">Старый демосценарий</p><h2 className="text-xl font-semibold text-ink">Предварительное демонстрационное предложение</h2><dl className="mt-5 divide-y divide-moss-200"><OfferRow label="Сумма требования" value={formatCurrency(application.amount)} /><OfferRow label="Финансирование" value={`${offer.financingPercentage}%`} /><OfferRow label="Поставщик получит сейчас" value={formatCurrency(offer.netAmount)} strong /></dl><p className="mt-4 flex gap-2 text-xs leading-5 text-slate-600"><ShieldCheck className="h-4 w-4 shrink-0" />Это не банковское одобрение.</p><PrimaryButton type="button" className="mt-5" loading={loading} onClick={() => onAccept()}><CheckCircle2 className="h-4 w-4" /> Принять демопредложение</PrimaryButton></section>;
 }
 
-function OfferRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
-  return <div className="flex items-baseline justify-between gap-4 py-3"><dt className="text-sm text-slate-600">{label}</dt><dd className={`${strong ? "text-lg text-moss-800" : "text-sm text-ink"} whitespace-nowrap text-right font-semibold`}>{value}</dd></div>;
-}
+function OfferRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) { return <div className="flex items-baseline justify-between gap-3 py-2.5"><dt className="text-xs text-slate-500">{label}</dt><dd className={`${strong ? "text-base text-moss-800" : "text-sm text-ink"} text-right font-semibold`}>{value}</dd></div>; }

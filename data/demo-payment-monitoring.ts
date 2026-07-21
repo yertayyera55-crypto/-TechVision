@@ -89,5 +89,5 @@ const common = {
 };
 
 export const demoPaymentMonitoringDeals: PaymentMonitoringDeal[] = [
-  makeDeal({ ...common, id: "125", applicationId: "125", buyerName: "ТОО «Aspan Market»", financialPartnerName: "FlowFactor", invoiceNumber: "AT-2026-001", invoiceAmount: 10_000_000, financedAmount: 9_200_000, amountPaidByBuyer: 0, deliveryDate: "2026-09-25", confirmationDate: "2026-09-26", financingDate: "2026-09-27", paymentDueDate: addDays(DEMO_MONITORING_TODAY, 60), gracePeriodDays: 20 }),
+  makeDeal({ ...common, id: "125", applicationId: "125", buyerName: "ТОО «Aspan Market»", financialPartnerName: "Örnek Capital", invoiceNumber: "AT-2026-001", invoiceAmount: 10_000_000, financedAmount: 9_200_000, amountPaidByBuyer: 0, deliveryDate: "2026-09-25", confirmationDate: "2026-09-26", financingDate: "2026-09-27", paymentDueDate: addDays(DEMO_MONITORING_TODAY, 60), gracePeriodDays: 20 }),
 ];

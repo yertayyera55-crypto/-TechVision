@@ -26,12 +26,23 @@ export type ConfirmationStatus =
   | "mismatch"
   | "not_received";
 
-export type DocumentType = "invoice" | "bill" | "contract" | "acceptance";
+export type DocumentType = "invoice" | "bill" | "contract" | "acceptance" | "esf" | "product_doc" | "other";
 export type ContractAnswer = "yes" | "no" | "unsure";
 export type FactoringType = "recourse" | "non_recourse" | "partner_decides";
 export type ProfitabilityResultType = "profitable" | "low_margin" | "unprofitable";
 export type RiskLevel = "none" | "low" | "medium" | "high" | "critical";
 export type PaymentStatus = "waiting" | "partial" | "overdue" | "paid";
+export type ProductCategory =
+  | "tea_coffee"
+  | "meat_chilled"
+  | "dairy"
+  | "produce"
+  | "grocery"
+  | "frozen"
+  | "confectionery"
+  | "beverages"
+  | "other";
+export type DataSource = "profile" | "contract" | "delivery_document" | "system" | "missing";
 
 export type PaymentMonitoringRiskLevel =
   | "none"
@@ -66,13 +77,59 @@ export interface ApplicationDocument {
 export interface CompanyProfile {
   company: string;
   bin: string;
+  director: string;
   industry: string;
+  businessDescription: string;
+  mainProducts: string;
+  monthlyTurnover: string;
   annualTurnover: string;
   yearsInBusiness: string;
   contact: string;
   phone: string;
   email: string;
+  mainBuyer: string;
+  bankDetails: string;
   iban: string;
+}
+
+export interface AnalysisEvidence {
+  field: string;
+  excerpt: string;
+}
+
+export interface ReceivableCalculation {
+  acceptedSupplyAmount: number;
+  returnsAmount: number;
+  holdsAmount: number;
+  confirmedReceivable: number;
+  desiredFinancingAmount: number;
+  availableFinancing: number;
+  confirmationDate: string;
+  dueDate: string | null;
+}
+
+export interface ReadinessProfile {
+  score: number;
+  category: ProductCategory;
+  documentCompleteness: number;
+  missingDocuments: string[];
+  risks: string[];
+  preliminaryConclusion: string;
+}
+
+export interface PartnerOffer {
+  id: string;
+  partnerName: string;
+  description: string;
+  eligible: boolean;
+  financingPercentage: number;
+  financingAmount: number;
+  cost: number;
+  netAmount: number;
+  termDays: number;
+  factoringType: FactoringType;
+  requiredDocuments: string[];
+  reasons: string[];
 }
 
 export interface ContractConditions {
@@ -224,6 +281,12 @@ export interface Application extends Delivery {
   supplySubject?: string;
   paymentTerms?: string;
   companyProfile?: CompanyProfile;
+  analysis?: ContractAnalysisResult;
+  productCategory?: ProductCategory;
+  receivable?: ReceivableCalculation;
+  readiness?: ReadinessProfile;
+  partnerOffers?: PartnerOffer[];
+  selectedPartnerOfferId?: string;
 }
 
 export interface ApplicationDraft {
@@ -236,6 +299,17 @@ export interface ApplicationDraft {
   paymentTerms: string;
   contractNumber: string;
   supplySubject: string;
+  acceptanceTerms: string;
+  assignmentTerms: string;
+  productCategory: ProductCategory;
+  categoryConfidence: number;
+  categoryConfirmed: boolean;
+  acceptedSupplyAmount: string;
+  returnsAmount: string;
+  holdsAmount: string;
+  confirmationDate: string;
+  desiredFinancingAmount: string;
+  analysis: ContractAnalysisResult | null;
   companyProfile: CompanyProfile;
   documents: Partial<Record<DocumentType, ApplicationDocument>>;
   step: number;
@@ -251,8 +325,19 @@ export interface ContractAnalysisResult {
   paymentDueDate: string | null;
   paymentTermDays: number | null;
   contractNumber: string | null;
+  contractDate: string | null;
   paymentTerms: string | null;
   supplySubject: string | null;
+  productCategory: ProductCategory | null;
+  categoryConfidence: number | null;
+  deliveryMethod: string | null;
+  delayTrigger: string | null;
+  acceptanceTerms: string | null;
+  returnsTerms: string | null;
+  deductions: string | null;
+  assignmentTerms: string | null;
+  requiredProductDocuments: string[];
+  evidence: AnalysisEvidence[];
   factoringReady: boolean;
   missingData: string[];
   notes: string[];

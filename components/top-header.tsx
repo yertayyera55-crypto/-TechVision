@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, ChevronDown, Plus, Search } from "lucide-react";
+import { Bell, ChevronDown, Search, Sparkles } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { primaryLinkClass, secondaryLinkClass } from "@/components/ui/buttons";
 import { useDemoAuth } from "@/lib/demo-auth";
 
-export function TopHeader({ title, subtitle = "FlowFactor помогает получить демофинансирование после поставки.", showNew = true }: { title?: string; subtitle?: string; showNew?: boolean }) {
+export function TopHeader({ title, subtitle = "Ваши поставки, договоры и предварительные варианты финансирования — в одном кабинете.", showNew = true }: { title?: string; subtitle?: string; showNew?: boolean }) {
   const { user } = useDemoAuth();
   const company = user?.company || "ТОО «Arman Tea»";
   const heading = title ?? `Здравствуйте, ${company}!`;
@@ -35,7 +35,7 @@ export function TopHeader({ title, subtitle = "FlowFactor помогает по�
             <span className="text-left"><span className="block max-w-40 truncate text-xs font-semibold text-ink">{company}</span><span className="block text-[10px] text-muted">Поставщик</span></span>
             <ChevronDown className="h-4 w-4 text-slate-400" />
           </Link>
-          {showNew && <><Link href="/deliveries" className={`${secondaryLinkClass} min-h-12 whitespace-nowrap`}><Search className="h-[18px] w-[18px]" /> Найти мои поставки</Link><Link href="/applications/new" className={`${primaryLinkClass} min-h-12 whitespace-nowrap`}><Plus className="h-[18px] w-[18px]" /> Новая заявка</Link></>}
+          {showNew && <><Link href="/deliveries" className={`${secondaryLinkClass} min-h-12 whitespace-nowrap`}><Search className="h-[18px] w-[18px]" /> Мои поставки</Link><Link href="/applications/new" className={`${primaryLinkClass} min-h-12 whitespace-nowrap`}><Sparkles className="h-[18px] w-[18px]" /> Получить финансирование</Link></>}
         </div>
       </div>
     </header>

@@ -25,7 +25,7 @@ def run() -> None:
 
         expect(page.get_by_role("heading", name="Сроки оплаты", exact=True)).to_be_visible()
         expect(page.locator("tbody tr")).to_have_count(1)
-        expect(page.get_by_text("Покупатель перечисляет оплату FlowFactor", exact=False)).to_be_visible()
+        expect(page.get_by_text("покупатель условно перечисляет оплату финансовому партнёру", exact=False)).to_be_visible()
         expect(page.get_by_text("Ожидается оплата покупателя", exact=True).first).to_be_visible()
         expect(page.get_by_role("button", name="Зафиксировать оплату", exact=True)).to_have_count(0)
         expect(page.get_by_role("button", name="Отметить полную оплату", exact=True)).to_have_count(0)
@@ -34,7 +34,7 @@ def run() -> None:
         page.wait_for_load_state("networkidle")
         expect(page.get_by_role("heading", name="ТОО «Aspan Market»", exact=True)).to_be_visible()
         expect(page.get_by_role("heading", name="Кто и кому платит", exact=True)).to_be_visible()
-        expect(page.get_by_text("Оплата поступает FlowFactor", exact=True)).to_be_visible()
+        expect(page.get_by_text("Оплата поступает партнёру", exact=True)).to_be_visible()
         expect(page.get_by_role("button", name="Зафиксировать оплату", exact=True)).to_have_count(0)
         expect(page.get_by_role("button", name="Отметить полную оплату", exact=True)).to_have_count(0)
 

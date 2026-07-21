@@ -3,7 +3,7 @@
 import { CheckCircle2, CircleAlert, FileSearch2, LoaderCircle, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/buttons";
-import { DEMO_CONTRACT_PDF } from "@/lib/demo-contract-pdf";
+import { DEMO_CONTRACT_ANALYSIS, DEMO_CONTRACT_PDF } from "@/lib/demo-contract-pdf";
 import { getDocumentFile, deleteDocumentFile, saveDocumentFile } from "@/lib/document-file-storage";
 import { ApplicationDocument, ContractAnalysisResult } from "@/lib/types";
 
@@ -34,8 +34,11 @@ export function DocumentAnalysisPanel({ contract, supportingDocuments, onUseDemo
       await saveDocumentFile(document.id, file);
       if (contract?.storageKind === "indexeddb") await deleteDocumentFile(contract.id);
       onUseDemo(document);
-      setMessage("Демодоговор готов к анализу.");
-      setStatus("idle");
+      setStage(stages.length - 1);
+      setAnalysis(DEMO_CONTRACT_ANALYSIS);
+      onApply(DEMO_CONTRACT_ANALYSIS);
+      setMessage("Подготовленный демодоговор проанализирован детерминированным демосценарием.");
+      setStatus("success");
     } catch {
       setStatus("error");
       setMessage("Не удалось сохранить демодоговор. Попробуйте загрузить PDF ещё раз.");
@@ -75,7 +78,7 @@ export function DocumentAnalysisPanel({ contract, supportingDocuments, onUseDemo
 
   return <section aria-labelledby="document-analysis-heading" className="border border-moss-200 bg-moss-50/55 p-4 sm:p-5">
     <div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-moss-700 ring-1 ring-moss-200"><FileSearch2 className="h-5 w-5" /></span><div><p className="eyebrow mb-1 !text-moss-700">Codex CLI · local analysis</p><h3 id="document-analysis-heading" className="text-base font-semibold text-ink">Автозаполнение по договору</h3><p className="mt-1 text-xs leading-5 text-slate-600">Анализ запускает авторизованный Codex CLI на этом компьюте. В MVP не нужен OPENAI_API_KEY.</p></div></div>
-    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center"><PrimaryButton type="button" disabled={status === "analyzing" || !contract} loading={status === "analyzing"} onClick={() => void analyze()}><Sparkles className="h-4 w-4" /> Проанализировать документы</PrimaryButton><SecondaryButton type="button" disabled={status === "analyzing"} onClick={() => void loadDemoContract()}>Взять демодоговор</SecondaryButton></div>
+    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center"><PrimaryButton type="button" disabled={status === "analyzing" || !contract} loading={status === "analyzing"} onClick={() => void analyze()}><Sparkles className="h-4 w-4" /> Проанализировать документы</PrimaryButton><SecondaryButton type="button" disabled={status === "analyzing"} onClick={() => void loadDemoContract()}>Запустить готовое демо</SecondaryButton></div>
     {status === "analyzing" && <div className="mt-4 border-t border-moss-200 pt-4" aria-live="polite"><ol className="grid gap-2 sm:grid-cols-4">{stages.map((item, index) => <li key={item} className={`flex items-center gap-2 text-xs ${index <= stage ? "font-semibold text-moss-800" : "text-slate-400"}`}><span className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] ${index < stage ? "bg-moss-600 text-white" : index === stage ? "bg-moss-100 text-moss-800 ring-1 ring-moss-300" : "bg-white text-slate-400 ring-1 ring-line"}`}>{index < stage ? <CheckCircle2 className="h-3.5 w-3.5" /> : index === stage ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : index + 1}</span>{item}</li>)}</ol></div>}
     {status === "success" && analysis && <div className="mt-4 border-t border-moss-200 pt-4" aria-live="polite"><p className="flex items-center gap-2 text-sm font-semibold text-moss-800"><CheckCircle2 className="h-4 w-4" /> Анализ завершён. Поля заявки обновлены.</p><AnalysisSummary analysis={analysis} /></div>}
     {status === "error" && <p role="alert" className="mt-4 flex items-start gap-2 border border-red-200 bg-red-50 px-3 py-3 text-xs leading-5 text-red-800"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />{message}</p>}

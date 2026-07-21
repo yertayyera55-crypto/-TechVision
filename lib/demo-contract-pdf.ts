@@ -1,3 +1,5 @@
+import { ContractAnalysisResult } from "@/lib/types";
+
 /**
  * Маленький ASCII-PDF для демо. В реальном сценарии пользователь загружает свой PDF.
  */
@@ -54,3 +56,35 @@ startxref
 788
 %%EOF
 `;
+
+export const DEMO_CONTRACT_ANALYSIS: ContractAnalysisResult = {
+  supplierName: "ТОО «Arman Tea»",
+  buyerName: "ТОО «Aspan Market»",
+  network: "ТОО «Aspan Market»",
+  invoiceNumber: "AT-DEMO-2026",
+  amount: 10_000_000,
+  deliveryDate: "2026-09-25",
+  paymentDueDate: "2026-11-24",
+  paymentTermDays: 60,
+  contractNumber: "FF-AT-2026/01",
+  contractDate: null,
+  paymentTerms: "Оплата в течение 60 дней после поставки",
+  supplySubject: "Фасованный чай",
+  productCategory: "tea_coffee",
+  categoryConfidence: 96,
+  deliveryMethod: "Поставка товара покупателю по накладной",
+  delayTrigger: "С даты поставки",
+  acceptanceTerms: null,
+  returnsTerms: null,
+  deductions: null,
+  assignmentTerms: null,
+  requiredProductDocuments: [],
+  evidence: [
+    { field: "supplySubject", excerpt: "Supply subject: packaged tea products" },
+    { field: "paymentTerms", excerpt: "Payment terms: payment within 60 days after delivery" },
+    { field: "amount", excerpt: "Invoice amount: 10000000 KZT" },
+  ],
+  factoringReady: false,
+  missingData: ["Подтверждение приёмки поставки", "Условия уступки денежного требования"],
+  notes: ["Категория определена предварительно. Финальную возможность факторинга проверяет финансовый партнёр."],
+};

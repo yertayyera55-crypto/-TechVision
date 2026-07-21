@@ -52,7 +52,7 @@ export const demoApplications: Application[] = [
 
 export const metrics = [
   { label: "Требование к покупателю", value: "10 000 000 ₸", icon: "clock" },
-  { label: "Получено от FlowFactor", value: "9 200 000 ₸", icon: "wallet" },
+  { label: "Демо-сумма сейчас", value: "9 200 000 ₸", icon: "wallet" },
   { label: "Срок оплаты покупателя", value: "60 дней", icon: "calendar" },
   { label: "Активных сделок", value: "1", icon: "card" },
 ] as const;
