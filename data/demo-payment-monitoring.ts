@@ -40,8 +40,8 @@ function makeDeal(input: DemoDealInput): PaymentMonitoringDeal {
 
 function createBaseEvents(input: DemoDealInput): PaymentEvent[] {
   const events: PaymentEvent[] = [
-    event(input.id, "confirmation_request", "Запрос подтверждения отправлен", "Покупателю создана одноразовая ссылка.", input.deliveryDate, "FlowFactor"),
-    event(input.id, "delivery_confirmed", "Поставка подтверждена", "Покупатель подтвердил поставку и комплект документов.", input.confirmationDate, "Покупатель"),
+    event(input.id, "contract_received", "Договор получен", "FlowFactor получил договор для предварительной проверки.", input.deliveryDate, "Поставщик"),
+    event(input.id, "document_review", "Проверка договора завершена", "FlowFactor сформировал предварительное предложение без запроса покупателю.", input.confirmationDate, "FlowFactor"),
     event(input.id, "financing_received", "Демонстрационное финансирование оформлено", `${input.financialPartnerName} отметил демофинансирование в сценарии.`, input.financingDate, "FlowFactor", input.financedAmount ?? undefined),
   ];
   if (input.amountPaidByBuyer > 0) {

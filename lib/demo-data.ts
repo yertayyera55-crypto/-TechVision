@@ -4,7 +4,6 @@ import { Application, ContractConditions } from "@/lib/types";
 
 export const standardDocuments = [
   { id: "125-contract", type: "contract" as const, label: "Договор поставки", name: "Договор_ArmanTea_Aspan.pdf", storageKind: "demo" as const },
-  { id: "125-acceptance", type: "acceptance" as const, label: "Акт приёма", name: "Акт_приёма_AT-2026-001.pdf", storageKind: "demo" as const },
 ];
 
 export const defaultContractConditions: ContractConditions = {
@@ -34,9 +33,7 @@ export const demoApplications: Application[] = [
     paymentDate: "2026-11-24",
     delayDays: 60,
     termDays: 60,
-    confirmationStatus: "confirmed",
-    confirmationRequestedAt: "2026-09-25T10:30:00+06:00",
-    confirmedAt: "2026-09-26T11:00:00+06:00",
+    confirmationStatus: "not_sent",
     reminderCount: 0,
     documents: standardDocuments,
     contractConditions: defaultContractConditions,

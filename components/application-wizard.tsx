@@ -15,7 +15,7 @@ import { defaultContractConditions, networkOptions } from "@/lib/demo-data";
 import { calculateDays, formatCurrency, formatDate } from "@/lib/format";
 import { Application, ApplicationDocument, ApplicationDraft, ContractAnalysisResult, DocumentType } from "@/lib/types";
 
-const DRAFT_KEY = "flowfactor-application-draft-v3";
+const DRAFT_KEY = "flowfactor-application-draft-v4";
 const LEGACY_DRAFT_KEY = "mighty-miners-application-draft-v2";
 const emptyDraft: ApplicationDraft = { network: "", amount: "", invoiceNumber: "", deliveryDate: "2026-07-18", paymentDate: "2026-10-16", documents: {}, step: 1 };
 
@@ -116,8 +116,7 @@ export function ApplicationWizard() {
       paymentDate: draft.paymentDate,
       delayDays: termDays,
       termDays,
-      confirmationStatus: "waiting",
-      confirmationRequestedAt: new Date().toISOString(),
+      confirmationStatus: "not_sent",
       reminderCount: 0,
       status: "precheck_passed",
       remainingDays: Math.max(0, termDays - 3),
@@ -177,20 +176,10 @@ function StepAnalysis({ draft, error, update, onAnalysis }: { draft: Application
 }
 
 function StepData({ draft, errors, update, analysis }: { draft: ApplicationDraft; errors: Record<string, string>; update: UpdateDraft; analysis: ContractAnalysisResult | null }) {
-  const setDocument = (type: DocumentType, document?: ApplicationDocument) => update("documents", { ...draft.documents, [type]: document });
   return <div><StepHeading number="02" title="Проверьте данные" text="Поля из договора уже подставлены. Измените только то, что AI не нашёл или распознал неточно." />
     {analysis && <div className={`mt-6 border px-4 py-3 text-sm ${analysis.factoringReady ? "border-moss-200 bg-moss-50 text-moss-900" : "border-amber-200 bg-amber-50 text-amber-950"}`}><p className="font-semibold">{analysis.factoringReady ? "Данных договора достаточно для предварительной заявки" : "Нужно уточнить данные перед отправкой"}</p>{analysis.missingData.length > 0 && <p className="mt-1 text-xs leading-5">Не найдено: {analysis.missingData.join(", ")}</p>}</div>}
     <ManualDataFields draft={draft} errors={errors} update={update} />
-    <details className="mt-7 border border-line bg-slate-50/50">
-      <summary className="cursor-pointer px-4 py-4 text-sm font-semibold text-ink">Добавить подтверждения поставки <span className="font-normal text-slate-500">(необязательно)</span></summary>
-      <div className="grid gap-3 border-t border-line p-4">
-        <p className="text-xs leading-5 text-slate-500">Добавьте накладную, ЭСФ или акт, если потребуется уточнить поставку. Для предварительного демопредложения достаточно договора.</p>
-        <FileUploader type="invoice" label="Накладная" value={draft.documents.invoice} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("invoice", file)} />
-        <FileUploader type="bill" label="Счёт-фактура / ЭСФ" value={draft.documents.bill} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("bill", file)} />
-        <FileUploader type="acceptance" label="Другое подтверждение поставки" optional value={draft.documents.acceptance} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("acceptance", file)} />
-      </div>
-    </details>
-    <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> В MVP документы хранятся локально в IndexedDB этого браузера и доступны для открытия после reload.</p>
+    <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> Для предварительной заявки достаточно договора. Если FlowFactor потребуется дополнительная проверка, её проводит команда FlowFactor — покупателю ничего отправлять не нужно.</p>
   </div>;
 }
 
@@ -206,7 +195,7 @@ function ManualDataFields({ draft, errors, update }: { draft: ApplicationDraft; 
 
 function StepReview({ draft, termDays, documentsCount }: { draft: ApplicationDraft; termDays: number; documentsCount: number }) {
   const rows = [["Торговая сеть", draft.network], ["Сумма поставки", formatCurrency(Number(draft.amount))], ["Номер накладной", draft.invoiceNumber], ["Дата поставки", formatDate(draft.deliveryDate)], ["Оплата по договору", `${formatDate(draft.paymentDate)} (${termDays} дней)`], ["Документы", `${documentsCount} файла`]];
-  return <div><StepHeading number="03" title="Проверка и отправка" text="Проверьте итоговые данные перед отправкой запроса сети." /><dl className="mt-7 divide-y divide-line border-y border-line">{rows.map(([label, value]) => <div key={label} className="grid gap-1 py-3.5 sm:grid-cols-[1fr_1.4fr]"><dt className="text-sm text-slate-500">{label}</dt><dd className="text-sm font-semibold text-ink sm:text-right">{value}</dd></div>)}</dl><div className="mt-5 flex items-start gap-3 border border-moss-200 bg-moss-50 px-4 py-3 text-sm leading-5 text-moss-800"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /><span><strong className="block">Всё готово к отправке</strong>Мы создадим одноразовую ссылку для подтверждения поставки.</span></div></div>;
+  return <div><StepHeading number="03" title="Проверка и отправка" text="Проверьте итоговые данные перед отправкой предварительной заявки в FlowFactor." /><dl className="mt-7 divide-y divide-line border-y border-line">{rows.map(([label, value]) => <div key={label} className="grid gap-1 py-3.5 sm:grid-cols-[1fr_1.4fr]"><dt className="text-sm text-slate-500">{label}</dt><dd className="text-sm font-semibold text-ink sm:text-right">{value}</dd></div>)}</dl><div className="mt-5 flex items-start gap-3 border border-moss-200 bg-moss-50 px-4 py-3 text-sm leading-5 text-moss-800"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /><span><strong className="block">Всё готово к отправке</strong>Договора достаточно для предварительного предложения. FlowFactor при необходимости проведёт внутреннюю проверку сам.</span></div></div>;
 }
 
 function StepHeading({ number, title, text }: { number: string; title: string; text: string }) {
@@ -214,5 +203,5 @@ function StepHeading({ number, title, text }: { number: string; title: string; t
 }
 
 function ApplicationSuccess({ id }: { id: string }) {
-  return <div className="mx-auto flex min-h-[70vh] max-w-xl animate-scale-in flex-col items-center justify-center text-center"><span className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-moss-50 text-moss-700 ring-1 ring-moss-200"><CheckCircle2 className="h-10 w-10" /></span><p className="eyebrow mb-2">Заявка №{id}</p><h1 className="font-display text-4xl font-medium tracking-tight md:text-5xl">Заявка отправлена</h1><p className="mt-4 max-w-md text-base leading-7 text-muted">Мы подготовили запрос на подтверждение поставки.</p><div className="mt-8 flex w-full flex-col justify-center gap-3 sm:flex-row"><Link href={`/applications/${id}`} className={primaryLinkClass}>Перейти к заявке <ArrowRight className="h-4 w-4" /></Link><Link href="/" className={secondaryLinkClass}>На главную</Link></div></div>;
+  return <div className="mx-auto flex min-h-[70vh] max-w-xl animate-scale-in flex-col items-center justify-center text-center"><span className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-moss-50 text-moss-700 ring-1 ring-moss-200"><CheckCircle2 className="h-10 w-10" /></span><p className="eyebrow mb-2">Заявка №{id}</p><h1 className="font-display text-4xl font-medium tracking-tight md:text-5xl">Предварительная заявка создана</h1><p className="mt-4 max-w-md text-base leading-7 text-muted">FlowFactor рассмотрит данные договора и покажет демонстрационное предварительное предложение. Покупателю ничего отправлять не нужно.</p><div className="mt-8 flex w-full flex-col justify-center gap-3 sm:flex-row"><Link href={`/applications/${id}`} className={primaryLinkClass}>Перейти к заявке <ArrowRight className="h-4 w-4" /></Link><Link href="/" className={secondaryLinkClass}>На главную</Link></div></div>;
 }

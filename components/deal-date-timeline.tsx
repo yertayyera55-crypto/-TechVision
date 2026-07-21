@@ -6,7 +6,7 @@ import { PaymentMonitoringDeal } from "@/lib/types";
 export function DealDateTimeline({ deal }: { deal: PaymentMonitoringDeal }) {
   const dates = [
     { date: deal.deliveryDate, title: "Поставка выполнена", critical: false },
-    { date: deal.confirmationDate, title: "Поставка подтверждена", critical: false },
+    { date: deal.confirmationDate, title: "Проверка договора FlowFactor", critical: false },
     { date: deal.financingDate, title: "Финансирование получено", critical: false },
     { date: deal.paymentDueDate, title: "Срок оплаты покупателем", critical: false },
     { date: deal.recourseDate, title: "Возможная дата регресса", critical: true },

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle2, FileText, Send, Store, WalletCards } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ApplicationTimeline } from "@/components/application-timeline";
-import { DeliveryConfirmationPanel } from "@/components/delivery-confirmation-panel";
+import { FlowFactorReviewPanel } from "@/components/flowfactor-review-panel";
 import { DocumentActions } from "@/components/document-actions";
 import { PreliminaryOffer } from "@/components/preliminary-offer";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -37,7 +37,7 @@ export function ApplicationDetail({ id }: { id: string }) {
     <div className="mb-7"><Link href="/applications" className="inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold text-slate-600 transition hover:text-ink"><ArrowLeft className="h-4 w-4" /> Все заявки</Link></div>
     <header className="mb-8 flex flex-col gap-5 border-b border-line pb-7 sm:flex-row sm:items-start sm:justify-between"><div><p className="eyebrow mb-2">Поставка · {application.buyerName}</p><div className="flex flex-wrap items-center gap-3"><h1 className="font-display text-4xl font-medium tracking-tight text-ink md:text-5xl">Заявка №{application.id}</h1><StatusBadge status={application.status} /></div><p className="mt-3 text-sm text-muted">Создана {formatDate(application.createdAt.slice(0, 10))} · накладная {application.invoiceNumber}</p></div><div className="text-left sm:text-right"><p className="text-2xl font-semibold tracking-tight text-ink md:text-3xl">{formatCurrency(application.amount)}</p>{application.monitoring && <Link href={`/deals/${id}/monitoring`} className={`${primaryLinkClass} mt-4`}>Контроль сделки</Link>}</div></header>
     <div className="grid gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,.75fr)]"><div className="space-y-7">
-      {!application.monitoring && <DeliveryConfirmationPanel application={application} onUpdate={update} />}
+      {!application.monitoring && <FlowFactorReviewPanel />}
       {!application.monitoring && application.factoringOffer && <PreliminaryOffer application={application} loading={transferring} onAccept={() => void acceptOffer()} />}
       {application.monitoring && <section className="border-y border-blue-200 bg-blue-50/70 px-4 py-6 sm:rounded-lg sm:border sm:p-6"><div className="flex items-start gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-blue-700 ring-1 ring-blue-200"><Send className="h-5 w-5" /></span><div><p className="eyebrow !text-blue-800 mb-1">Сделка активна</p><h2 className="text-xl font-semibold text-ink">Демонстрационное финансирование оформлено</h2><p className="mt-2 text-sm leading-6 text-slate-600">По условиям демосценария средства перечислены. Теперь покупатель перечисляет оплату FlowFactor, а вы только наблюдаете срок сделки.</p><Link href={`/deals/${id}/monitoring`} className={`${primaryLinkClass} mt-5`}>Перейти в «Сроки оплаты»</Link></div></div></section>}
       {application.status === "closed" && <section className="border-y border-emerald-200 bg-emerald-50 px-4 py-6 sm:rounded-lg sm:border sm:p-6"><div className="flex items-start gap-3"><CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-700" /><div><h2 className="text-xl font-semibold">Сделка закрыта</h2><p className="mt-2 text-sm text-slate-600">Покупатель полностью оплатил задолженность.</p></div></div></section>}

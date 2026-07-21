@@ -6,8 +6,8 @@ import { recalculatePaymentMonitoringDeal } from "@/lib/calculate-payment-monito
 import { PaymentMonitoringRepository } from "@/lib/repositories/payment-monitoring-repository";
 import { PaymentMonitoringDeal } from "@/lib/types";
 
-// v3 replaces legacy payment controls with a read-only FlowFactor scenario.
-const STORAGE_KEY = "flowfactor-payment-monitoring-v3";
+// v4 keeps the read-only FlowFactor scenario separate from older confirmation data.
+const STORAGE_KEY = "flowfactor-payment-monitoring-v4";
 const repository = new PaymentMonitoringRepository(STORAGE_KEY);
 
 interface PaymentMonitoringContextValue {

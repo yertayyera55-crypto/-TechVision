@@ -6,7 +6,7 @@ import { useState } from "react";
 import { SecondaryButton } from "@/components/ui/buttons";
 
 const initialNotifications = [
-  { id: "n1", title: "Поставка подтверждена", text: "ТОО «Aspan Market» подтвердило демонстрационную поставку №125.", time: "26 сентября, 11:00", href: "/applications/125", icon: FileCheck2, unread: true },
+  { id: "n1", title: "Договор проверен", text: "FlowFactor сформировал предварительное предложение по заявке №125.", time: "26 сентября, 11:00", href: "/applications/125", icon: FileCheck2, unread: true },
   { id: "n2", title: "Демопредложение сформировано", text: "FlowFactor подготовил предварительное демонстрационное предложение для заявки №125.", time: "26 сентября, 11:20", href: "/applications/125", icon: FileCheck2, unread: true },
   { id: "n3", title: "Финансирование оформлено", text: "По условиям демосценария средства перечислены, ожидается оплата покупателя FlowFactor.", time: "27 сентября, 12:00", href: "/payments-monitoring", icon: Send, unread: false },
 ];

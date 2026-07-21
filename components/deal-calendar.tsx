@@ -7,7 +7,7 @@ import { Application, DealMonitoring } from "@/lib/types";
 export function DealCalendar({ application, monitoring }: { application: Application; monitoring: DealMonitoring }) {
   const dates = [
     { date: application.deliveryDate, title: "Поставка выполнена" },
-    { date: application.confirmedAt?.slice(0, 10) ?? "2026-07-20", title: "Поставка подтверждена" },
+    { date: application.createdAt.slice(0, 10), title: "Проверка договора FlowFactor" },
     { date: monitoring.financedAt.slice(0, 10), title: "Финансирование получено" },
     { date: monitoring.paymentDueDate, title: "Срок оплаты покупателем" },
     { date: monitoring.regressionDate, title: "Возможная дата регресса" },
