@@ -63,6 +63,18 @@ export interface ApplicationDocument {
   storageKind?: "indexeddb" | "demo";
 }
 
+export interface CompanyProfile {
+  company: string;
+  bin: string;
+  industry: string;
+  annualTurnover: string;
+  yearsInBusiness: string;
+  contact: string;
+  phone: string;
+  email: string;
+  iban: string;
+}
+
 export interface ContractConditions {
   hasPaymentDelay: ContractAnswer;
   paymentTermSpecified: ContractAnswer;
@@ -208,6 +220,10 @@ export interface Application extends Delivery {
   dataTransferConsent?: boolean;
   signedAt?: string;
   monitoring?: DealMonitoring;
+  contractNumber?: string;
+  supplySubject?: string;
+  paymentTerms?: string;
+  companyProfile?: CompanyProfile;
 }
 
 export interface ApplicationDraft {
@@ -216,6 +232,11 @@ export interface ApplicationDraft {
   invoiceNumber: string;
   deliveryDate: string;
   paymentDate: string;
+  paymentTermDays: string;
+  paymentTerms: string;
+  contractNumber: string;
+  supplySubject: string;
+  companyProfile: CompanyProfile;
   documents: Partial<Record<DocumentType, ApplicationDocument>>;
   step: number;
 }
@@ -229,6 +250,9 @@ export interface ContractAnalysisResult {
   deliveryDate: string | null;
   paymentDueDate: string | null;
   paymentTermDays: number | null;
+  contractNumber: string | null;
+  paymentTerms: string | null;
+  supplySubject: string | null;
   factoringReady: boolean;
   missingData: string[];
   notes: string[];

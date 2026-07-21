@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Bell, CircleDollarSign, CircleHelp, FileText, Home, LogOut, Settings, Truck, UserRound, Workflow } from "lucide-react";
 import { EducationalMvpNotice } from "@/components/educational-mvp-notice";
 import { Logo } from "@/components/logo";
+import { useDemoAuth } from "@/lib/demo-auth";
 
 const navigation = [
   { href: "/", label: "Главная", icon: Home },
@@ -19,6 +20,7 @@ const navigation = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { logout } = useDemoAuth();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[248px] flex-col border-r border-line bg-paper/95 px-5 py-7 backdrop-blur-sm lg:flex">
@@ -46,10 +48,10 @@ export function AppSidebar() {
         </a>
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent("mm-toast", { detail: "В demo-режиме авторизация не требуется" }))}
+          onClick={logout}
           className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-ink"
         >
-          <LogOut aria-hidden="true" className="h-4 w-4" /> Выйти
+          <LogOut aria-hidden="true" className="h-4 w-4" /> Выйти из кабинета
         </button>
       </div>
     </aside>

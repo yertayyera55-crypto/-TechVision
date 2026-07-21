@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ApplicationProvider } from "@/lib/application-store";
+import { DemoAuthProvider } from "@/lib/demo-auth";
 import { PaymentMonitoringProvider } from "@/lib/payment-monitoring-store";
+import { DemoAuthGate } from "@/components/demo-auth-gate";
 
 export const metadata: Metadata = {
   title: { default: "FlowFactor", template: "%s · FlowFactor" },
@@ -20,9 +22,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ru" data-scroll-behavior="smooth">
       <body>
-        <ApplicationProvider>
-          <PaymentMonitoringProvider>{children}</PaymentMonitoringProvider>
-        </ApplicationProvider>
+        <DemoAuthProvider>
+          <ApplicationProvider>
+            <PaymentMonitoringProvider><DemoAuthGate>{children}</DemoAuthGate></PaymentMonitoringProvider>
+          </ApplicationProvider>
+        </DemoAuthProvider>
       </body>
     </html>
   );

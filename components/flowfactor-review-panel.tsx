@@ -7,7 +7,7 @@ export function FlowFactorReviewPanel() {
       <div>
         <p className="eyebrow mb-1">Проверка заявки</p>
         <h2 id="flowfactor-review-heading" className="text-xl font-semibold text-ink">Внутренняя проверка FlowFactor</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Договора достаточно для предварительного предложения. FlowFactor проверяет данные внутри своего процесса; поставщику не нужно запрашивать подтверждение у покупателя.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Анкета и договор получены для предварительной проверки. FlowFactor проверяет данные внутри своего процесса; поставщику не нужно запрашивать подтверждение у покупателя.</p>
       </div>
     </div>
     <p className="mt-5 flex items-start gap-2 border-l-2 border-moss-500 pl-3 text-xs leading-5 text-slate-600"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-moss-700" />Если в реальном процессе потребуется дополнительная проверка, её инициирует FlowFactor по своей процедуре. В демо-заявке покупатель не получает ссылок и уведомлений.</p>

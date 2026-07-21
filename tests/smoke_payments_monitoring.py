@@ -16,6 +16,9 @@ def run() -> None:
         page.on("console", lambda message: errors.append(message.text) if message.type == "error" else None)
 
         page.goto(BASE_URL)
+        page.wait_for_load_state("networkidle")
+        if page.get_by_role("button", name="Продолжить с демо-профилем", exact=True).is_visible():
+            page.get_by_role("button", name="Продолжить с демо-профилем", exact=True).click()
         page.evaluate("key => localStorage.removeItem(key)", STORAGE_KEY)
         page.goto(f"{BASE_URL}/payments-monitoring")
         page.wait_for_load_state("networkidle")
