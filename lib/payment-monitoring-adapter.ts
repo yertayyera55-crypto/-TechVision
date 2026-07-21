@@ -10,12 +10,13 @@ export function paymentMonitoringDealFromApplication(application: Application): 
   if (!monitoring) return null;
   const closedEvent = monitoring.events.findLast((event) => event.type === "closed");
   const paymentEvent = monitoring.events.findLast((event) => event.type === "partial_payment" || event.type === "closed");
+  const selectedPartnerName = application.partnerOffers?.find((offer) => offer.id === application.selectedPartnerOfferId)?.partnerName ?? "Örnek Capital";
   const base: PaymentMonitoringDeal = {
     id: application.id,
     applicationId: application.id,
     supplierName: application.supplierName,
     buyerName: application.buyerName,
-    financialPartnerName: "Örnek Capital",
+    financialPartnerName: selectedPartnerName,
     invoiceNumber: application.invoiceNumber,
     invoiceAmount: application.amount,
     financedAmount: monitoring.financedAmount,

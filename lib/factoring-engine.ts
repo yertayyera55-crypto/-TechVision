@@ -36,15 +36,19 @@ export function calculateReadiness(category: ProductCategory, documents: Applica
 export function matchDemoPartners(input: { category: ProductCategory; receivable: ReceivableCalculation; termDays: number; documents: ApplicationDocument[] }): PartnerOffer[] {
   const category = getCategoryConfig(input.category);
   const hasAcceptance = input.documents.some((document) => ["invoice", "acceptance", "esf"].includes(document.type));
-  return DEMO_PARTNERS.map((partner) => {
-    const blockers: string[] = [];
-    if (input.termDays > partner.maxTermDays) blockers.push(`срок отсрочки больше ${partner.maxTermDays} дней`);
-    if (input.receivable.confirmedReceivable < partner.minReceivable) blockers.push(`требование меньше ${new Intl.NumberFormat("ru-RU").format(partner.minReceivable)} ₸`);
-    if (partner.requiresAcceptanceProof && !hasAcceptance) blockers.push("нужно подтверждение приёмки");
-    if (category.perishable && !partner.acceptsPerishables) blockers.push("партнёр не рассматривает скоропортящуюся категорию в демо");
+  const ranked = DEMO_PARTNERS.map((partner) => {
+    const caveats: string[] = [];
+    if (input.termDays > partner.maxTermDays) caveats.push(`Срок ${input.termDays} дней выше демо-ориентира партнёра в ${partner.maxTermDays} дней`);
+    if (input.receivable.confirmedReceivable < partner.minReceivable) caveats.push(`Сумма ниже демо-ориентира ${new Intl.NumberFormat("ru-RU").format(partner.minReceivable)} ₸`);
+    if (partner.requiresAcceptanceProof && !hasAcceptance) caveats.push("Перед рассмотрением понадобится подтверждение приёмки");
+    if (category.perishable && !partner.acceptsPerishables) caveats.push("Скоропортящаяся категория потребует отдельного согласования");
     const financingAmount = Math.min(input.receivable.availableFinancing, Math.round(input.receivable.confirmedReceivable * partner.financingPercentage / 100));
     const cost = Math.round(financingAmount * partner.commissionRate * Math.max(1, input.termDays) / 60);
     const preferred = partner.preferredCategories.includes(input.category);
-    return { id: partner.id, partnerName: partner.name, description: partner.description, eligible: blockers.length === 0, financingPercentage: partner.financingPercentage, financingAmount, cost, netAmount: Math.max(0, financingAmount - cost), termDays: input.termDays, factoringType: partner.factoringType, requiredDocuments: partner.requiresAcceptanceProof ? ["Договор", "Подтверждение приёмки"] : ["Договор"], reasons: blockers.length ? blockers.map((reason) => `Не подходит: ${reason}`) : [preferred ? "Категория входит в демо-приоритет партнёра" : "Категория допустима по синтетическим правилам", `Отсрочка ${input.termDays} дней укладывается в лимит`, `Требование соответствует минимальной сумме`] };
+    const reasons = [preferred ? "Категория входит в демо-приоритет партнёра" : "Партнёр работает с этой категорией по демо-правилам", partner.requiresAcceptanceProof ? "Партнёр проверяет подтверждение приёмки" : "Можно начать без отдельного подтверждения приёмки", `Финансирование до ${partner.financingPercentage}% · ${partner.factoringType === "non_recourse" ? "без регресса" : "с регрессом"}`];
+    const score = (preferred ? 25 : 0) + partner.financingPercentage - caveats.length * 40 - partner.commissionRate * 100;
+    return { score, offer: { id: partner.id, partnerName: partner.name, description: partner.description, eligible: caveats.length === 0, recommendation: "available" as const, financingPercentage: partner.financingPercentage, financingAmount, cost, netAmount: Math.max(0, financingAmount - cost), termDays: input.termDays, factoringType: partner.factoringType, requiredDocuments: partner.requiresAcceptanceProof ? ["Договор", "Подтверждение приёмки"] : ["Договор"], caveats, reasons } };
   });
+  const recommendedId = [...ranked].sort((left, right) => right.score - left.score)[0]?.offer.id;
+  return ranked.map(({ offer }) => ({ ...offer, recommendation: offer.id === recommendedId ? "recommended" : "available" }));
 }

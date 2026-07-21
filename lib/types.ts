@@ -122,6 +122,7 @@ export interface PartnerOffer {
   partnerName: string;
   description: string;
   eligible: boolean;
+  recommendation: "recommended" | "available";
   financingPercentage: number;
   financingAmount: number;
   cost: number;
@@ -129,6 +130,7 @@ export interface PartnerOffer {
   termDays: number;
   factoringType: FactoringType;
   requiredDocuments: string[];
+  caveats: string[];
   reasons: string[];
 }
 
