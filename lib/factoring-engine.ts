@@ -23,14 +23,15 @@ export function calculateReadiness(category: ProductCategory, documents: Applica
   const hasContract = documents.some((document) => document.type === "contract");
   const hasAcceptance = documents.some((document) => ["invoice", "acceptance", "esf"].includes(document.type));
   const hasProductDoc = documents.some((document) => document.type === "product_doc");
-  const checks = [hasContract, hasAcceptance, config.requiredDocuments.length <= 2 || hasProductDoc];
+  const checks = [hasContract, Boolean(analysis?.acceptanceTerms), Boolean(analysis?.assignmentTerms)];
   const missingDocuments = [!hasContract ? "Договор поставки" : "", !hasAcceptance ? "Подтверждение поставки (накладная, акт или ЭСФ)" : "", config.requiredDocuments.length > 2 && !hasProductDoc ? config.requiredDocuments.slice(2).join(", ") : ""].filter(Boolean);
   const documentCompleteness = Math.round(checks.filter(Boolean).length / checks.length * 100);
   const risks = [...config.risks];
   if (!analysis?.assignmentTerms) risks.push("Уступка требования требует проверки по договору");
   if (!analysis?.acceptanceTerms) risks.push("Не найден порядок подтверждения приёмки");
   const score = Math.max(25, Math.min(95, documentCompleteness - Math.max(0, risks.length - 2) * 4));
-  return { score, category, documentCompleteness, missingDocuments, risks, preliminaryConclusion: missingDocuments.length ? "Можно продолжить после уточнения недостающих документов." : "Пакет предварительно готов к подбору демо-предложений." };
+  const preliminaryConclusion = checks.every(Boolean) ? "Договор содержит основные условия для демо-заявки." : "В договоре нужно уточнить основные условия заявки.";
+  return { score, category, documentCompleteness, missingDocuments, risks, preliminaryConclusion };
 }
 
 export function matchDemoPartners(input: { category: ProductCategory; receivable: ReceivableCalculation; termDays: number; documents: ApplicationDocument[] }): PartnerOffer[] {
