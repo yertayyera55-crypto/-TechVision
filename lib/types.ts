@@ -129,7 +129,7 @@ export interface DealEvent {
   title: string;
   description: string;
   timestamp: string;
-  source: "Mighty Miners" | "Поставщик" | "Покупатель" | "Финансовый партнёр";
+  source: "FlowFactor" | "Поставщик" | "Покупатель";
 }
 
 export interface PaymentEvent {

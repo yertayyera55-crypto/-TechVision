@@ -8,7 +8,7 @@ export function PaymentMonitoringSummary({ deals }: { deals: PaymentMonitoringDe
     { label: "Общая задолженность", value: formatCurrency(sum(active, "outstandingAmount")) },
     { label: "Оплата в ближайшие 7 дней", value: String(active.filter((deal) => deal.daysUntilPayment !== null && deal.daysUntilPayment >= 0 && deal.daysUntilPayment <= 7).length) },
     { label: "Просрочено", value: String(active.filter((deal) => deal.overdueDays > 0).length) },
-    { label: "В grace period", value: String(active.filter((deal) => deal.paymentStatus === "grace_period").length) },
+    { label: "В льготном периоде", value: String(active.filter((deal) => deal.paymentStatus === "grace_period").length) },
     { label: "Критический риск", value: String(active.filter((deal) => deal.riskLevel === "critical").length) },
     { label: "Потенциальный регресс", value: formatCurrency(sum(active, "potentialRecourseAmount")) },
   ];

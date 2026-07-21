@@ -6,8 +6,8 @@ import { recalculatePaymentMonitoringDeal } from "@/lib/calculate-payment-monito
 import { PaymentMonitoringRepository } from "@/lib/repositories/payment-monitoring-repository";
 import { PaymentMonitoringDeal } from "@/lib/types";
 
-// v2 intentionally replaces the previous eight-item demo with a compact set.
-const STORAGE_KEY = "mighty-miners-payment-monitoring-v2";
+// v3 replaces legacy payment controls with a read-only FlowFactor scenario.
+const STORAGE_KEY = "flowfactor-payment-monitoring-v3";
 const repository = new PaymentMonitoringRepository(STORAGE_KEY);
 
 interface PaymentMonitoringContextValue {

@@ -5,7 +5,7 @@ import { demoApplications } from "@/lib/demo-data";
 import { Application } from "@/lib/types";
 import { LocalApplicationRepository } from "@/lib/repositories/application-repository";
 
-const STORAGE_KEY = "mighty-miners-applications-v2";
+const STORAGE_KEY = "flowfactor-applications-v3";
 const repository = new LocalApplicationRepository(STORAGE_KEY);
 
 interface ApplicationContextValue {

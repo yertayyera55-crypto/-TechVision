@@ -12,6 +12,6 @@ export function ReadinessChecklist({ application }: { application: Application }
     <p className={`mt-3 text-sm font-semibold ${tone}`}>{result}</p>
     <ul className="mt-5 grid gap-3 sm:grid-cols-2">{readiness.items.map((item) => <li key={item.id} className={`flex items-center gap-2 text-sm ${item.ready ? "text-ink" : "text-slate-500"}`}>{item.ready ? <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-moss-100 text-moss-700"><Check className="h-3 w-3" /></span> : <Circle className="h-5 w-5 shrink-0 text-amber-500" />}{item.label}</li>)}</ul>
     {readiness.missing.length > 0 && <div className="mt-5 flex items-start gap-2 border-l-2 border-amber-400 pl-4 text-xs leading-5 text-slate-600"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />Не заполнено: {readiness.missing.map((item) => item.label.toLowerCase()).join(", ")}.</div>}
-    <p className="mt-5 flex items-start gap-2 text-xs leading-5 text-slate-500"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-moss-700" />Это проверка комплектности заявки, а не решение финансового партнёра.</p>
+    <p className="mt-5 flex items-start gap-2 text-xs leading-5 text-slate-500"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-moss-700" />Это проверка комплектности для демосценария, а не реальное финансовое решение.</p>
   </section>;
 }

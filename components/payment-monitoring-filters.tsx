@@ -6,9 +6,9 @@ export type MonitoringSort = "payment" | "recourse" | "amount" | "risk" | "buyer
 const filters: { value: MonitoringFilter; label: string }[] = [
   { value: "all", label: "Все" },
   { value: "attention", label: "Требуют внимания" },
-  { value: "due_soon", label: "Оплата скоро" },
+  { value: "due_soon", label: "Срок приближается" },
   { value: "overdue", label: "Просрочено" },
-  { value: "grace", label: "Grace period" },
+  { value: "grace", label: "Льготный период" },
   { value: "critical", label: "Критический риск" },
   { value: "partial", label: "Частично оплачено" },
   { value: "closed", label: "Закрытые сделки" },

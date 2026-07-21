@@ -15,7 +15,7 @@ export function paymentMonitoringDealFromApplication(application: Application): 
     applicationId: application.id,
     supplierName: application.supplierName,
     buyerName: application.buyerName,
-    financialPartnerName: "Demo Finance Partner",
+    financialPartnerName: "FlowFactor",
     invoiceNumber: application.invoiceNumber,
     invoiceAmount: application.amount,
     financedAmount: monitoring.financedAmount,

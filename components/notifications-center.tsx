@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { BellRing, CheckCheck, FileCheck2, Send, Timer } from "lucide-react";
+import { BellRing, CheckCheck, FileCheck2, Send } from "lucide-react";
 import { useState } from "react";
 import { SecondaryButton } from "@/components/ui/buttons";
 
 const initialNotifications = [
-  { id: "n1", title: "Поставка ожидает подтверждения", text: "Заявка №125 отправлена представителю Magnum Cash & Carry.", time: "Сегодня, 10:45", href: "/applications/125", icon: Timer, unread: true },
-  { id: "n2", title: "Предварительный расчёт готов", text: "Для заявки №121 доступна предварительная сумма финансирования.", time: "Вчера, 12:10", href: "/applications/121", icon: FileCheck2, unread: true },
-  { id: "n3", title: "Заявка передана партнёру", text: "Заявка №118 принята финансовым партнёром для рассмотрения.", time: "2 июля, 15:40", href: "/applications/118", icon: Send, unread: false },
+  { id: "n1", title: "Поставка подтверждена", text: "ТОО «Aspan Market» подтвердило демонстрационную поставку №125.", time: "26 сентября, 11:00", href: "/applications/125", icon: FileCheck2, unread: true },
+  { id: "n2", title: "Демопредложение сформировано", text: "FlowFactor подготовил предварительное демонстрационное предложение для заявки №125.", time: "26 сентября, 11:20", href: "/applications/125", icon: FileCheck2, unread: true },
+  { id: "n3", title: "Финансирование оформлено", text: "По условиям демосценария средства перечислены, ожидается оплата покупателя FlowFactor.", time: "27 сентября, 12:00", href: "/payments-monitoring", icon: Send, unread: false },
 ];
 
 export function NotificationsCenter() {

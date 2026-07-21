@@ -4,8 +4,8 @@ import { addDays } from "@/lib/calculate-deal-dates";
 import { calculateRecourseRisk } from "@/lib/calculate-recourse-risk";
 import { DealMonitoring } from "@/lib/types";
 
-export function createDemoMonitoring(dealId: string, amount: number, paymentDueDate: string, gracePeriodDays = 20): DealMonitoring {
-  const financedAmount = Math.round(amount * 0.9);
+export function createDemoMonitoring(dealId: string, amount: number, paymentDueDate: string, gracePeriodDays = 20, supplierReceivedAmount = Math.round(amount * 0.92)): DealMonitoring {
+  const financedAmount = supplierReceivedAmount;
   const regressionDate = addDays(paymentDueDate, gracePeriodDays);
   const risk = calculateRecourseRisk(financedAmount, 0, regressionDate, DEMO_TODAY);
   return {

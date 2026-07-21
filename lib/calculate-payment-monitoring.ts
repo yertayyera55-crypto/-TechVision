@@ -178,7 +178,7 @@ function getRecommendedAction({
 }
 
 function missingDataAction(deal: MonitoringSource) {
-  if (deal.gracePeriodDays === null) return "Указать grace period";
+  if (deal.gracePeriodDays === null) return "Нужно уточнить льготный период";
   if (!deal.paymentDueDate) return "Указать дату оплаты";
   return "Указать сумму финансирования";
 }

@@ -4,7 +4,7 @@ export const demoRules = {
     lowMarginPercent: 3,
   },
   factoring: {
-    financingPercentage: 90,
+    financingPercentage: 95,
     annualRatePercent: 13.3333333333333,
     defaultGracePeriodDays: 20,
   },

@@ -9,7 +9,7 @@ const help = process.argv.includes("--help") || process.argv.includes("-h");
 
 if (help) {
   console.log(`
-Mighty Miners — быстрый запуск
+FlowFactor — быстрый запуск
 
   npm run demo              установить зависимости и открыть приложение
   npm run demo -- --no-open запустить без автоматического открытия браузера
@@ -32,7 +32,7 @@ if (!(await exists("node_modules/next/package.json"))) {
 
 const runningServer = await findRunningDevServer();
 if (runningServer) {
-  console.log(`\n✅ Mighty Miners уже запущен: ${runningServer.url}`);
+  console.log(`\n✅ FlowFactor уже запущен: ${runningServer.url}`);
   console.log(`   PID: ${runningServer.pid}. Повторный сервер не требуется.\n`);
   if (!noOpen) openBrowser(runningServer.url);
   process.exit(0);
@@ -41,7 +41,7 @@ if (runningServer) {
 const port = await findFreePort(3000);
 const url = `http://127.0.0.1:${port}`;
 
-console.log(`\n⛏️  Запускаю Mighty Miners на ${url}\n`);
+console.log(`\n⛏️  Запускаю FlowFactor на ${url}\n`);
 
 const server = spawn(
   npmCommand,
@@ -54,7 +54,7 @@ server.once("exit", () => { serverExited = true; });
 
 try {
   await waitUntilReady(url, () => serverExited);
-  console.log(`\n✅ Mighty Miners готов: ${url}`);
+  console.log(`\n✅ FlowFactor готов: ${url}`);
   console.log("   Для остановки нажмите Ctrl+C.\n");
   if (!noOpen) openBrowser(url);
 } catch (error) {

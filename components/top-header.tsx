@@ -3,7 +3,7 @@ import { Bell, ChevronDown, Plus, Search } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { primaryLinkClass, secondaryLinkClass } from "@/components/ui/buttons";
 
-export function TopHeader({ title = "Здравствуйте, Tea Local!", subtitle = "Ваши поставки. Ваши деньги раньше.", showNew = true }: { title?: string; subtitle?: string; showNew?: boolean }) {
+export function TopHeader({ title = "Здравствуйте, ТОО «Arman Tea»!", subtitle = "FlowFactor помогает получить демофинансирование после поставки.", showNew = true }: { title?: string; subtitle?: string; showNew?: boolean }) {
   return (
     <header className="mb-8 animate-rise">
       <div className="mb-6 flex items-center justify-between lg:hidden">
@@ -26,7 +26,7 @@ export function TopHeader({ title = "Здравствуйте, Tea Local!", subt
           </Link>
           <Link href="/profile" className="hidden min-h-12 items-center gap-3 rounded-lg border border-line bg-paper px-3 transition hover:border-moss-200 md:flex">
             <span className="flex h-8 w-8 items-center justify-center rounded-md bg-moss-50 text-xs font-bold text-moss-700 ring-1 ring-moss-100">TL</span>
-            <span className="text-left"><span className="block text-xs font-semibold text-ink">Tea Local LLP</span><span className="block text-[10px] text-muted">Компания</span></span>
+            <span className="text-left"><span className="block text-xs font-semibold text-ink">ТОО «Arman Tea»</span><span className="block text-[10px] text-muted">Поставщик</span></span>
             <ChevronDown className="h-4 w-4 text-slate-400" />
           </Link>
           {showNew && <><Link href="/deliveries" className={`${secondaryLinkClass} min-h-12 whitespace-nowrap`}><Search className="h-[18px] w-[18px]" /> Найти мои поставки</Link><Link href="/applications/new" className={`${primaryLinkClass} min-h-12 whitespace-nowrap`}><Plus className="h-[18px] w-[18px]" /> Новая заявка</Link></>}

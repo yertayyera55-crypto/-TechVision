@@ -1,35 +1,40 @@
 "use client";
 
-import { ArrowRight, Calculator, ChevronDown, CircleHelp, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Calculator, ChevronDown, ShieldCheck } from "lucide-react";
 import { useState } from "react";
-import { PrimaryButton, SecondaryButton, TextLink } from "@/components/ui/buttons";
-import { Application } from "@/lib/types";
+import { PrimaryButton, TextLink } from "@/components/ui/buttons";
 import { formatCurrency } from "@/lib/format";
+import { Application } from "@/lib/types";
 
-export function PreliminaryOffer({ application, onTransfer }: { application: Application; onTransfer: () => void }) {
+export function PreliminaryOffer({ application, onAccept, loading = false }: { application: Application; onAccept: () => void; loading?: boolean }) {
   const [showFormula, setShowFormula] = useState(false);
-  const available = Math.round(application.amount * 0.970411);
-  const cost = application.amount - available;
-  return (
-    <section aria-labelledby="offer-title" className="border-y border-moss-200 bg-moss-50/50 px-4 py-6 sm:rounded-lg sm:border sm:p-6">
-      <div className="flex items-start gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper text-moss-700 ring-1 ring-moss-200"><Calculator className="h-5 w-5" /></span><div><p className="eyebrow mb-1">Предварительный расчёт</p><h2 id="offer-title" className="text-xl font-semibold text-ink">Можно получить на {Math.max(1, application.termDays - 2)} дней раньше</h2></div></div>
-      <dl className="mt-6 divide-y divide-moss-200/70 border-y border-moss-200/70">
-        <OfferRow label="Сумма поставки" value={formatCurrency(application.amount)} />
-        <OfferRow label="Предварительно доступно" value={formatCurrency(available)} strong />
-        <OfferRow label="Стоимость финансирования" value={formatCurrency(cost)} />
-        <OfferRow label="Комиссия Marti" value="0 ₸" />
-      </dl>
-      <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-600"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-moss-700" />Это предварительный расчёт. Окончательные условия определяет финансовый партнёр.</p>
-      {showFormula && <div className="mt-4 animate-scale-in border-l-2 border-moss-500 pl-4 text-xs leading-5 text-slate-600">В demo используется фиксированная ставка: доступная сумма = сумма поставки × 97,0411%. В production ставку и условия вернёт финансовый партнёр.</div>}
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <PrimaryButton type="button" onClick={onTransfer}>Передать заявку партнёру <ArrowRight className="h-4 w-4" /></PrimaryButton>
-        <SecondaryButton type="button" onClick={() => window.dispatchEvent(new CustomEvent("mm-toast", { detail: "Запрос на консультацию отправлен" }))}><CircleHelp className="h-4 w-4" /> Запросить консультацию</SecondaryButton>
-        <TextLink type="button" onClick={() => setShowFormula((value) => !value)}>Как рассчитана сумма? <ChevronDown className={`h-4 w-4 transition ${showFormula ? "rotate-180" : ""}`} /></TextLink>
-      </div>
-    </section>
-  );
+  if (!application.factoringOffer) return null;
+
+  const offer = application.factoringOffer;
+  const commission = offer.financingCost + offer.documentFees + offer.otherFees + offer.taxExpenses + offer.platformFee;
+  const reserve = Math.max(0, application.amount - offer.financingAmount);
+  const typeDescription = offer.factoringType === "non_recourse"
+    ? "Без регресса: в рамках демосценария риск неплатежа покупателя несёт FlowFactor."
+    : "С регрессом: при длительной просрочке покупателя FlowFactor может потребовать возврат финансирования в соответствии с условиями договора.";
+
+  return <section aria-labelledby="offer-title" className="border-y border-moss-200 bg-moss-50/50 px-4 py-6 sm:rounded-lg sm:border sm:p-6">
+    <div className="flex items-start gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper text-moss-700 ring-1 ring-moss-200"><Calculator className="h-5 w-5" /></span><div><p className="eyebrow mb-1">FlowFactor · учебный MVP</p><h2 id="offer-title" className="text-xl font-semibold text-ink">Предварительное демонстрационное предложение</h2><p className="mt-1 text-sm text-slate-600">Предварительно соответствует условиям по данным заявки. Это не банковское одобрение.</p></div></div>
+    <dl className="mt-6 divide-y divide-moss-200/70 border-y border-moss-200/70">
+      <OfferRow label="Сумма денежного требования" value={formatCurrency(application.amount)} />
+      <OfferRow label="Процент финансирования" value={`${offer.financingPercentage}%`} />
+      <OfferRow label="Сумма первоначального финансирования" value={formatCurrency(offer.financingAmount)} />
+      <OfferRow label="Комиссия FlowFactor" value={formatCurrency(commission)} />
+      <OfferRow label="Поставщик получит сейчас" value={formatCurrency(offer.netAmount)} strong />
+      <OfferRow label="Резерв после оплаты покупателя" value={formatCurrency(reserve)} />
+      <OfferRow label="Срок оплаты покупателем" value={`${application.termDays} дней · ${new Intl.DateTimeFormat("ru-RU").format(new Date(`${application.paymentDueDate}T00:00:00`))}`} />
+      <OfferRow label="Тип факторинга" value={offer.factoringType === "non_recourse" ? "Без регресса" : "С регрессом"} />
+    </dl>
+    <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-600"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-moss-700" />{typeDescription}</p>
+    {showFormula && <div className="mt-4 animate-scale-in border-l-2 border-moss-500 pl-4 text-xs leading-5 text-slate-600">В демосценарии: первоначальное финансирование = требование × {offer.financingPercentage}%, комиссия FlowFactor = требование × 3%, сумма сейчас = первоначальное финансирование − комиссия. Финальные условия реального продукта определялись бы после проверки документов.</div>}
+    <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap"><PrimaryButton type="button" loading={loading} disabled={loading} onClick={onAccept}><CheckCircle2 className="h-4 w-4" /> Принять демопредложение</PrimaryButton><TextLink type="button" onClick={() => setShowFormula((value) => !value)}>Как рассчитана сумма? <ChevronDown className={`h-4 w-4 transition ${showFormula ? "rotate-180" : ""}`} /></TextLink></div>
+  </section>;
 }
 
 function OfferRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
-  return <div className="flex items-baseline justify-between gap-4 py-3"><dt className="text-sm text-slate-600">{label}</dt><dd className={`${strong ? "text-lg text-moss-800" : "text-sm text-ink"} whitespace-nowrap font-semibold`}>{value}</dd></div>;
+  return <div className="flex items-baseline justify-between gap-4 py-3"><dt className="text-sm text-slate-600">{label}</dt><dd className={`${strong ? "text-lg text-moss-800" : "text-sm text-ink"} whitespace-nowrap text-right font-semibold`}>{value}</dd></div>;
 }

@@ -9,13 +9,14 @@ import { DocumentAnalysisPanel } from "@/components/form/document-analysis-panel
 import { FormField } from "@/components/form/form-field";
 import { StepIndicator } from "@/components/form/step-indicator";
 import { PrimaryButton, SecondaryButton, primaryLinkClass, secondaryLinkClass } from "@/components/ui/buttons";
+import { createDemoFlowFactorOffer } from "@/data/demo-offers";
 import { useApplications } from "@/lib/application-store";
 import { defaultContractConditions, networkOptions } from "@/lib/demo-data";
 import { calculateDays, formatCurrency, formatDate } from "@/lib/format";
 import { Application, ApplicationDocument, ApplicationDraft, ContractAnalysisResult, DocumentType } from "@/lib/types";
 
-const DRAFT_KEY = "mighty-miners-application-draft-v2";
-const LEGACY_DRAFT_KEY = "mighty-miners-application-draft-v1";
+const DRAFT_KEY = "flowfactor-application-draft-v3";
+const LEGACY_DRAFT_KEY = "mighty-miners-application-draft-v2";
 const emptyDraft: ApplicationDraft = { network: "", amount: "", invoiceNumber: "", deliveryDate: "2026-07-18", paymentDate: "2026-10-16", documents: {}, step: 1 };
 
 function migrateLegacyStep(step: number) {
@@ -100,12 +101,13 @@ export function ApplicationWizard() {
     setSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 700));
     const nextId = String(Math.max(...applications.map((item) => Number(item.id)), 125) + 1);
+    const amount = Number(draft.amount);
     const application: Application = {
       id: nextId,
-      supplierName: "Tea Local LLP",
+      supplierName: "ТОО «Arman Tea»",
       buyerName: draft.network,
       network: draft.network,
-      amount: Number(draft.amount),
+      amount,
       costAmount: 0,
       productionExpenses: 0,
       invoiceNumber: draft.invoiceNumber,
@@ -117,12 +119,14 @@ export function ApplicationWizard() {
       confirmationStatus: "waiting",
       confirmationRequestedAt: new Date().toISOString(),
       reminderCount: 0,
-      status: "awaiting_confirmation",
+      status: "precheck_passed",
       remainingDays: Math.max(0, termDays - 3),
       documents,
       contractConditions: defaultContractConditions,
       createdAt: new Date().toISOString(),
-      financialDataCompleted: false,
+      financialDataCompleted: true,
+      factoringOffer: createDemoFlowFactorOffer(nextId, amount, termDays),
+      selectedFactoringType: "recourse",
     };
     addApplication(application);
     window.localStorage.removeItem(DRAFT_KEY);
@@ -180,7 +184,7 @@ function StepData({ draft, errors, update, analysis }: { draft: ApplicationDraft
     <details className="mt-7 border border-line bg-slate-50/50">
       <summary className="cursor-pointer px-4 py-4 text-sm font-semibold text-ink">Добавить подтверждения поставки <span className="font-normal text-slate-500">(необязательно)</span></summary>
       <div className="grid gap-3 border-t border-line p-4">
-        <p className="text-xs leading-5 text-slate-500">Добавьте накладную, ЭСФ или акт, если они понадобятся финансовому партнёру. Для отправки заявки достаточно договора.</p>
+        <p className="text-xs leading-5 text-slate-500">Добавьте накладную, ЭСФ или акт, если потребуется уточнить поставку. Для предварительного демопредложения достаточно договора.</p>
         <FileUploader type="invoice" label="Накладная" value={draft.documents.invoice} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("invoice", file)} />
         <FileUploader type="bill" label="Счёт-фактура / ЭСФ" value={draft.documents.bill} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("bill", file)} />
         <FileUploader type="acceptance" label="Другое подтверждение поставки" optional value={draft.documents.acceptance} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("acceptance", file)} />
@@ -193,7 +197,7 @@ function StepData({ draft, errors, update, analysis }: { draft: ApplicationDraft
 function ManualDataFields({ draft, errors, update }: { draft: ApplicationDraft; errors: Record<string, string>; update: UpdateDraft }) {
   const termDays = calculateDays(draft.deliveryDate, draft.paymentDate);
   return <div className="mt-7 grid gap-5">
-    <FormField label="Торговая сеть или покупатель" htmlFor="network" required error={errors.network}><input id="network" list="network-options" value={draft.network} onChange={(event) => update("network", event.target.value)} placeholder="Например, Green Market" className="control" aria-invalid={Boolean(errors.network)} /><datalist id="network-options">{networkOptions.map((network) => <option key={network} value={network} />)}</datalist></FormField>
+    <FormField label="Торговая сеть или покупатель" htmlFor="network" required error={errors.network}><input id="network" list="network-options" value={draft.network} onChange={(event) => update("network", event.target.value)} placeholder="Например, ТОО «Aspan Market»" className="control" aria-invalid={Boolean(errors.network)} /><datalist id="network-options">{networkOptions.map((network) => <option key={network} value={network} />)}</datalist></FormField>
     <div className="grid gap-5 sm:grid-cols-2"><FormField label="Сумма поставки" htmlFor="amount" required hint="AI подставит сумму из договора" error={errors.amount}><div className="relative"><input id="amount" inputMode="numeric" type="number" min="1" value={draft.amount} onChange={(event) => update("amount", event.target.value)} placeholder="2 000 000" className="control pr-12" aria-invalid={Boolean(errors.amount)} /><span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-500">₸</span></div></FormField><FormField label="Номер накладной" htmlFor="invoiceNumber" required error={errors.invoiceNumber}><input id="invoiceNumber" value={draft.invoiceNumber} onChange={(event) => update("invoiceNumber", event.target.value)} placeholder="TL-1807-25" className="control" /></FormField></div>
     <div className="grid gap-5 sm:grid-cols-2"><FormField label="Дата поставки" htmlFor="deliveryDate" required error={errors.deliveryDate}><input id="deliveryDate" type="date" value={draft.deliveryDate} onChange={(event) => update("deliveryDate", event.target.value)} className="control" /></FormField><FormField label="Дата оплаты по договору" htmlFor="paymentDate" required error={errors.paymentDate}><input id="paymentDate" type="date" value={draft.paymentDate} onChange={(event) => update("paymentDate", event.target.value)} className="control" /></FormField></div>
     {termDays > 0 && <div className="flex items-center gap-3 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"><CalendarDays className="h-5 w-5 shrink-0 text-amber-700" /><span>Срок оплаты: <strong>{termDays} дней</strong></span></div>}

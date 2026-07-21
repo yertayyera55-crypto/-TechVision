@@ -12,14 +12,14 @@ const riskMeta: Record<PaymentMonitoringRiskLevel, { label: string; className: s
 };
 
 const statusLabels: Record<PaymentMonitoringStatus, string> = {
-  scheduled: "Оплата по графику",
-  due_soon: "Оплата скоро",
-  due_today: "Оплата сегодня",
-  overdue: "Просрочено",
-  grace_period: "Grace period",
-  partial: "Частично оплачено",
+  scheduled: "Ожидается оплата покупателя",
+  due_soon: "Срок оплаты приближается",
+  due_today: "Срок оплаты сегодня",
+  overdue: "Оплата просрочена",
+  grace_period: "Оплата просрочена · льготный период",
+  partial: "Оплата получена фактором частично",
   closed: "Сделка закрыта",
-  needs_review: "Нужны данные",
+  needs_review: "Нужна дополнительная информация",
 };
 
 export function RiskStatusBadge({ riskLevel }: { riskLevel: PaymentMonitoringRiskLevel }) {

@@ -7,7 +7,7 @@ import { CircleDollarSign, Home, Plus, UserRound, Workflow } from "lucide-react"
 const items = [
   { href: "/", label: "Главная", icon: Home },
   { href: "/applications", label: "Заявки", icon: Workflow },
-  { href: "/payments-monitoring", label: "Оплаты", icon: CircleDollarSign },
+  { href: "/payments-monitoring", label: "Сроки", icon: CircleDollarSign },
   { href: "/profile", label: "Профиль", icon: UserRound },
 ];
 

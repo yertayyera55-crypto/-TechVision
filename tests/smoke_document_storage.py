@@ -12,7 +12,7 @@ PNG = base64.b64decode(
 
 def make_pdf() -> bytes:
     """Build a tiny valid text PDF so Chromium can preview the contract fixture."""
-    content = b"BT /F1 11 Tf 72 720 Td (Mighty Miners demo contract) Tj ET"
+    content = b"BT /F1 11 Tf 72 720 Td (FlowFactor demo contract) Tj ET"
     objects = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
@@ -66,7 +66,7 @@ def run() -> None:
         )
         expect(page.get_by_text("contract-proof.pdf", exact=True)).to_be_visible()
         page.get_by_role("button", name="Проверить данные", exact=True).click()
-        page.locator("#network").fill("Green Market")
+        page.locator("#network").fill("ТОО «Aspan Market»")
         page.locator("#amount").fill("750000")
         page.locator("#invoiceNumber").fill("DOC-STORAGE-1")
         page.locator("summary").click()
@@ -115,7 +115,7 @@ def run() -> None:
         assert download_info.value.suggested_filename == "invoice-proof.pdf"
 
         # Старые demo-записи хранили только имя; их можно восстановить одной повторной загрузкой.
-        legacy = page.locator("article").filter(has_text="Накладная_125.pdf")
+        legacy = page.locator("article").filter(has_text="Договор_ArmanTea_Aspan.pdf")
         expect(legacy.get_by_role("button", name="Загрузить заново", exact=True)).to_be_visible()
         legacy.locator("input[type=file]").set_input_files(
             {"name": "legacy-recovered.png", "mimeType": "image/png", "buffer": PNG}

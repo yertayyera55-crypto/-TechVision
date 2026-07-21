@@ -2,7 +2,7 @@ export const DEMO_MONITORING_TODAY = "2026-09-25";
 
 /**
  * Бизнес-пороги вынесены из UI и расчётной функции. В production их можно
- * получать из настроек продукта или договора партнёра без переписывания JSX.
+ * получать из настроек FlowFactor или договора без переписывания JSX.
  */
 export const demoMonitoringRules = {
   dueSoonDays: 7,

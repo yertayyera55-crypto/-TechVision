@@ -4,8 +4,8 @@ import { ApplicationProvider } from "@/lib/application-store";
 import { PaymentMonitoringProvider } from "@/lib/payment-monitoring-store";
 
 export const metadata: Metadata = {
-  title: { default: "Marti", template: "%s · Marti" },
-  description: "Платформа ранней оплаты для локальных поставщиков",
+  title: { default: "FlowFactor", template: "%s · FlowFactor" },
+  description: "Учебный MVP вымышленной факторинговой компании для поставщиков",
   manifest: "/manifest.json",
   icons: { icon: "/icon.svg", apple: "/icon.svg" },
 };
