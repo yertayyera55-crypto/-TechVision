@@ -3,6 +3,11 @@ export const demoRules = {
     healthyMarginPercent: 8,
     lowMarginPercent: 3,
   },
+  factoring: {
+    financingPercentage: 90,
+    annualRatePercent: 13.3333333333333,
+    defaultGracePeriodDays: 20,
+  },
   recourse: {
     recommendedReserveShare: 0.2,
     highRiskDays: 5,

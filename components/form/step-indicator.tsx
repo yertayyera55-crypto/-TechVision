@@ -1,10 +1,10 @@
 import { Check } from "lucide-react";
 
-const labels = ["Поставка", "Даты", "Документы", "Отправка"];
+const labels = ["Договор + AI", "Проверка", "Отправка"];
 
 export function StepIndicator({ current }: { current: number }) {
   return (
-    <ol aria-label="Шаги создания заявки" className="grid grid-cols-4 gap-1">
+    <ol aria-label="Шаги создания заявки" className="grid grid-cols-3 gap-1">
       {labels.map((label, index) => {
         const step = index + 1;
         const complete = step < current;

@@ -49,6 +49,7 @@ def run() -> None:
         # Готовность, прибыльность, регресс, согласие и demo-ЭЦП.
         page.goto(f"{BASE_URL}/applications/125")
         expect(page.get_by_text("Готовность заявки: 85%", exact=True)).to_be_visible()
+        page.get_by_role("checkbox", name="Учитывать дополнительные расходы и условия", exact=False).check()
         page.get_by_role("button", name="Рассчитать прибыльность", exact=True).click()
         expect(page.get_by_text("260 000 ₸", exact=True)).to_be_visible()
         expect(page.get_by_text("179 822 ₸", exact=True)).to_be_visible()

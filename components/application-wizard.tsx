@@ -14,13 +14,21 @@ import { defaultContractConditions, networkOptions } from "@/lib/demo-data";
 import { calculateDays, formatCurrency, formatDate } from "@/lib/format";
 import { Application, ApplicationDocument, ApplicationDraft, ContractAnalysisResult, DocumentType } from "@/lib/types";
 
-const DRAFT_KEY = "mighty-miners-application-draft-v1";
+const DRAFT_KEY = "mighty-miners-application-draft-v2";
+const LEGACY_DRAFT_KEY = "mighty-miners-application-draft-v1";
 const emptyDraft: ApplicationDraft = { network: "", amount: "", invoiceNumber: "", deliveryDate: "2026-07-18", paymentDate: "2026-10-16", documents: {}, step: 1 };
+
+function migrateLegacyStep(step: number) {
+  if (step >= 4) return 3;
+  if (step >= 3) return 2;
+  return 1;
+}
 
 export function ApplicationWizard() {
   const router = useRouter();
   const { applications, addApplication } = useApplications();
   const [draft, setDraft] = useState<ApplicationDraft>(emptyDraft);
+  const [analysis, setAnalysis] = useState<ContractAnalysisResult | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [ready, setReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -28,8 +36,14 @@ export function ApplicationWizard() {
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(DRAFT_KEY);
-      if (saved) setDraft(JSON.parse(saved) as ApplicationDraft);
+      const currentSaved = window.localStorage.getItem(DRAFT_KEY);
+      const legacySaved = window.localStorage.getItem(LEGACY_DRAFT_KEY);
+      const saved = currentSaved ?? legacySaved;
+      if (saved) {
+        const parsed = JSON.parse(saved) as ApplicationDraft;
+        const step = currentSaved ? Math.min(3, Math.max(1, parsed.step)) : migrateLegacyStep(parsed.step);
+        setDraft({ ...emptyDraft, ...parsed, step });
+      }
     } finally {
       setReady(true);
     }
@@ -41,14 +55,13 @@ export function ApplicationWizard() {
 
   const termDays = useMemo(() => calculateDays(draft.deliveryDate, draft.paymentDate), [draft.deliveryDate, draft.paymentDate]);
   const documents = Object.values(draft.documents).filter(Boolean) as ApplicationDocument[];
-  const requiredDocumentsReady = ["invoice", "bill", "contract"].every((type) => draft.documents[type as DocumentType]);
-
   const update = <K extends keyof ApplicationDraft>(key: K, value: ApplicationDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: "" }));
   };
 
   const applyAnalysis = (analysis: ContractAnalysisResult) => {
+    setAnalysis(analysis);
     setDraft((current) => ({
       ...current,
       network: analysis.network ?? analysis.buyerName ?? current.network,
@@ -63,24 +76,22 @@ export function ApplicationWizard() {
 
   const validate = () => {
     const next: Record<string, string> = {};
-    if (draft.step === 1) {
-      if (!draft.network) next.network = "Выберите торговую сеть";
+    if (draft.step === 1 && !draft.documents.contract) next.documents = "Загрузите договор в PDF или выберите демодоговор";
+    if (draft.step >= 2) {
+      if (!draft.network.trim()) next.network = "Укажите торговую сеть или покупателя";
       if (!draft.amount || Number(draft.amount) <= 0) next.amount = "Введите сумму больше нуля";
       if (!draft.invoiceNumber.trim()) next.invoiceNumber = "Введите номер накладной";
-    }
-    if (draft.step === 2) {
       if (!draft.deliveryDate) next.deliveryDate = "Укажите дату поставки";
       if (!draft.paymentDate) next.paymentDate = "Укажите дату оплаты";
       if (draft.deliveryDate && draft.paymentDate && termDays <= 0) next.paymentDate = "Дата оплаты должна быть позже даты поставки";
     }
-    if (draft.step === 3 && !requiredDocumentsReady) next.documents = "Загрузите три обязательных документа";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
   const nextStep = () => {
     if (!validate()) return;
-    setDraft((current) => ({ ...current, step: Math.min(4, current.step + 1) }));
+    setDraft((current) => ({ ...current, step: Math.min(3, current.step + 1) }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -134,18 +145,17 @@ export function ApplicationWizard() {
       </div>
       <header className="mb-8">
         <p className="eyebrow mb-2">Новая заявка</p>
-        <h1 className="font-display text-4xl font-medium tracking-tight text-ink md:text-5xl">Подготовим поставку к финансированию</h1>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-muted">Заполните данные и приложите документы. Отправка заявки не является кредитным договором.</p>
+        <h1 className="font-display text-4xl font-medium tracking-tight text-ink md:text-5xl">Начните с договора</h1>
+        <p className="mt-3 max-w-xl text-sm leading-6 text-muted">Загрузите PDF — AI извлечёт сумму, покупателя и даты. Вам останется проверить результат и уточнить только недостающие данные.</p>
       </header>
       <div className="mb-8 border-y border-line bg-paper px-2 py-5 sm:rounded-lg sm:border sm:px-6"><StepIndicator current={draft.step} /></div>
       <section key={draft.step} className="animate-scale-in border-y border-line bg-paper px-4 py-6 shadow-soft sm:rounded-lg sm:border sm:p-8">
-        {draft.step === 1 && <StepSupply draft={draft} errors={errors} update={update} />}
-        {draft.step === 2 && <StepDates draft={draft} errors={errors} update={update} termDays={termDays} />}
-        {draft.step === 3 && <StepDocuments draft={draft} error={errors.documents} update={update} onAnalysis={applyAnalysis} />}
-        {draft.step === 4 && <StepReview draft={draft} termDays={termDays} documentsCount={documents.length} />}
+        {draft.step === 1 && <StepAnalysis draft={draft} error={errors.documents} update={update} onAnalysis={applyAnalysis} />}
+        {draft.step === 2 && <StepData draft={draft} errors={errors} update={update} analysis={analysis} />}
+        {draft.step === 3 && <StepReview draft={draft} termDays={termDays} documentsCount={documents.length} />}
         <div className="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:justify-between">
           {draft.step === 1 ? <SecondaryButton type="button" onClick={cancel}>Отмена</SecondaryButton> : <SecondaryButton type="button" onClick={() => setDraft((current) => ({ ...current, step: current.step - 1 }))}><ArrowLeft className="h-4 w-4" /> Назад</SecondaryButton>}
-          {draft.step < 4 ? <PrimaryButton type="button" onClick={nextStep}>Далее <ArrowRight className="h-4 w-4" /></PrimaryButton> : <PrimaryButton type="button" loading={submitting} onClick={submit}><ShieldCheck className="h-4 w-4" /> Отправить заявку</PrimaryButton>}
+          {draft.step < 3 ? <PrimaryButton type="button" onClick={nextStep}>{draft.step === 1 ? "Проверить данные" : "Перейти к отправке"} <ArrowRight className="h-4 w-4" /></PrimaryButton> : <PrimaryButton type="button" loading={submitting} onClick={submit}><ShieldCheck className="h-4 w-4" /> Отправить заявку</PrimaryButton>}
         </div>
       </section>
     </div>
@@ -154,35 +164,45 @@ export function ApplicationWizard() {
 
 type UpdateDraft = <K extends keyof ApplicationDraft>(key: K, value: ApplicationDraft[K]) => void;
 
-function StepSupply({ draft, errors, update }: { draft: ApplicationDraft; errors: Record<string, string>; update: UpdateDraft }) {
-  return <div><StepHeading number="01" title="Поставка" text="Укажите контрагента и данные отгрузки." /><div className="mt-7 grid gap-5">
-    <FormField label="Торговая сеть" htmlFor="network" required error={errors.network}><select id="network" value={draft.network} onChange={(event) => update("network", event.target.value)} className="control" aria-invalid={Boolean(errors.network)}><option value="">Выберите торговую сеть</option>{networkOptions.map((network) => <option key={network}>{network}</option>)}</select></FormField>
-    <FormField label="Сумма поставки" htmlFor="amount" required hint="Укажите сумму по накладной без разделителей" error={errors.amount}><div className="relative"><input id="amount" inputMode="numeric" type="number" min="1" value={draft.amount} onChange={(event) => update("amount", event.target.value)} placeholder="Например, 2 000 000" className="control pr-12" aria-invalid={Boolean(errors.amount)} /><span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-500">₸</span></div></FormField>
-    <FormField label="Номер накладной" htmlFor="invoiceNumber" required error={errors.invoiceNumber}><input id="invoiceNumber" value={draft.invoiceNumber} onChange={(event) => update("invoiceNumber", event.target.value)} placeholder="Например, TL-1807-25" className="control" aria-invalid={Boolean(errors.invoiceNumber)} /></FormField>
-  </div></div>;
-}
-
-function StepDates({ draft, errors, update, termDays }: { draft: ApplicationDraft; errors: Record<string, string>; update: UpdateDraft; termDays: number }) {
-  return <div><StepHeading number="02" title="Даты" text="Срок ожидания рассчитается автоматически." /><div className="mt-7 grid gap-5 sm:grid-cols-2">
-    <FormField label="Дата поставки" htmlFor="deliveryDate" required error={errors.deliveryDate}><input id="deliveryDate" type="date" value={draft.deliveryDate} onChange={(event) => update("deliveryDate", event.target.value)} className="control" /></FormField>
-    <FormField label="Дата оплаты по договору" htmlFor="paymentDate" required error={errors.paymentDate}><input id="paymentDate" type="date" value={draft.paymentDate} onChange={(event) => update("paymentDate", event.target.value)} className="control" /></FormField>
-  </div>{termDays > 0 && <div className="mt-6 flex items-center gap-3 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"><CalendarDays className="h-5 w-5 shrink-0 text-amber-700" /><span>Срок оплаты: <strong>{termDays} дней</strong></span></div>}</div>;
-}
-
-function StepDocuments({ draft, error, update, onAnalysis }: { draft: ApplicationDraft; error?: string; update: UpdateDraft; onAnalysis: (analysis: ContractAnalysisResult) => void }) {
+function StepAnalysis({ draft, error, update, onAnalysis }: { draft: ApplicationDraft; error?: string; update: UpdateDraft; onAnalysis: (analysis: ContractAnalysisResult) => void }) {
   const setDocument = (type: DocumentType, document?: ApplicationDocument) => update("documents", { ...draft.documents, [type]: document });
-  return <div><StepHeading number="03" title="Загрузите документы" text="Договор можно проанализировать локальным Codex CLI и использовать для автозаполнения заявки." /><div className="mt-7 grid gap-3">
-    <FileUploader type="contract" label="Договор" value={draft.documents.contract} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("contract", file)} />
-    <DocumentAnalysisPanel contract={draft.documents.contract} supportingDocuments={[draft.documents.invoice, draft.documents.bill, draft.documents.acceptance].filter(Boolean) as ApplicationDocument[]} onUseDemo={(file) => setDocument("contract", file)} onApply={onAnalysis} />
-    <FileUploader type="invoice" label="Накладная" value={draft.documents.invoice} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("invoice", file)} />
-    <FileUploader type="bill" label="Счёт-фактура / ЭСФ" value={draft.documents.bill} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("bill", file)} />
-    <FileUploader type="acceptance" label="Другое подтверждение поставки" optional value={draft.documents.acceptance} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("acceptance", file)} />
-  </div>{error && <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p>}<p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> Для MVP содержимое хранится локально в IndexedDB этого браузера и не переносится на другое устройство. В production файлы будут храниться в закрытом Storage с контролем доступа.</p></div>;
+  return <div><StepHeading number="01" title="Договор и AI-анализ" text="Это единственное действие, с которого нужно начать. Остальные данные система попробует заполнить сама." /><div className="mt-7 grid gap-3">
+    <FileUploader type="contract" label="Загрузите договор" value={draft.documents.contract} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("contract", file)} />
+    <DocumentAnalysisPanel contract={draft.documents.contract} supportingDocuments={[]} onUseDemo={(file) => setDocument("contract", file)} onApply={onAnalysis} />
+  </div>{error && <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p>}<p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> Если Codex CLI недоступен или в договоре не хватает данных, перейдите дальше и заполните только пустые поля вручную.</p></div>;
+}
+
+function StepData({ draft, errors, update, analysis }: { draft: ApplicationDraft; errors: Record<string, string>; update: UpdateDraft; analysis: ContractAnalysisResult | null }) {
+  const setDocument = (type: DocumentType, document?: ApplicationDocument) => update("documents", { ...draft.documents, [type]: document });
+  return <div><StepHeading number="02" title="Проверьте данные" text="Поля из договора уже подставлены. Измените только то, что AI не нашёл или распознал неточно." />
+    {analysis && <div className={`mt-6 border px-4 py-3 text-sm ${analysis.factoringReady ? "border-moss-200 bg-moss-50 text-moss-900" : "border-amber-200 bg-amber-50 text-amber-950"}`}><p className="font-semibold">{analysis.factoringReady ? "Данных договора достаточно для предварительной заявки" : "Нужно уточнить данные перед отправкой"}</p>{analysis.missingData.length > 0 && <p className="mt-1 text-xs leading-5">Не найдено: {analysis.missingData.join(", ")}</p>}</div>}
+    <ManualDataFields draft={draft} errors={errors} update={update} />
+    <details className="mt-7 border border-line bg-slate-50/50">
+      <summary className="cursor-pointer px-4 py-4 text-sm font-semibold text-ink">Добавить подтверждения поставки <span className="font-normal text-slate-500">(необязательно)</span></summary>
+      <div className="grid gap-3 border-t border-line p-4">
+        <p className="text-xs leading-5 text-slate-500">Добавьте накладную, ЭСФ или акт, если они понадобятся финансовому партнёру. Для отправки заявки достаточно договора.</p>
+        <FileUploader type="invoice" label="Накладная" value={draft.documents.invoice} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("invoice", file)} />
+        <FileUploader type="bill" label="Счёт-фактура / ЭСФ" value={draft.documents.bill} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("bill", file)} />
+        <FileUploader type="acceptance" label="Другое подтверждение поставки" optional value={draft.documents.acceptance} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("acceptance", file)} />
+      </div>
+    </details>
+    <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> В MVP документы хранятся локально в IndexedDB этого браузера и доступны для открытия после reload.</p>
+  </div>;
+}
+
+function ManualDataFields({ draft, errors, update }: { draft: ApplicationDraft; errors: Record<string, string>; update: UpdateDraft }) {
+  const termDays = calculateDays(draft.deliveryDate, draft.paymentDate);
+  return <div className="mt-7 grid gap-5">
+    <FormField label="Торговая сеть или покупатель" htmlFor="network" required error={errors.network}><input id="network" list="network-options" value={draft.network} onChange={(event) => update("network", event.target.value)} placeholder="Например, Green Market" className="control" aria-invalid={Boolean(errors.network)} /><datalist id="network-options">{networkOptions.map((network) => <option key={network} value={network} />)}</datalist></FormField>
+    <div className="grid gap-5 sm:grid-cols-2"><FormField label="Сумма поставки" htmlFor="amount" required hint="AI подставит сумму из договора" error={errors.amount}><div className="relative"><input id="amount" inputMode="numeric" type="number" min="1" value={draft.amount} onChange={(event) => update("amount", event.target.value)} placeholder="2 000 000" className="control pr-12" aria-invalid={Boolean(errors.amount)} /><span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-500">₸</span></div></FormField><FormField label="Номер накладной" htmlFor="invoiceNumber" required error={errors.invoiceNumber}><input id="invoiceNumber" value={draft.invoiceNumber} onChange={(event) => update("invoiceNumber", event.target.value)} placeholder="TL-1807-25" className="control" /></FormField></div>
+    <div className="grid gap-5 sm:grid-cols-2"><FormField label="Дата поставки" htmlFor="deliveryDate" required error={errors.deliveryDate}><input id="deliveryDate" type="date" value={draft.deliveryDate} onChange={(event) => update("deliveryDate", event.target.value)} className="control" /></FormField><FormField label="Дата оплаты по договору" htmlFor="paymentDate" required error={errors.paymentDate}><input id="paymentDate" type="date" value={draft.paymentDate} onChange={(event) => update("paymentDate", event.target.value)} className="control" /></FormField></div>
+    {termDays > 0 && <div className="flex items-center gap-3 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"><CalendarDays className="h-5 w-5 shrink-0 text-amber-700" /><span>Срок оплаты: <strong>{termDays} дней</strong></span></div>}
+  </div>;
 }
 
 function StepReview({ draft, termDays, documentsCount }: { draft: ApplicationDraft; termDays: number; documentsCount: number }) {
   const rows = [["Торговая сеть", draft.network], ["Сумма поставки", formatCurrency(Number(draft.amount))], ["Номер накладной", draft.invoiceNumber], ["Дата поставки", formatDate(draft.deliveryDate)], ["Оплата по договору", `${formatDate(draft.paymentDate)} (${termDays} дней)`], ["Документы", `${documentsCount} файла`]];
-  return <div><StepHeading number="04" title="Проверка и отправка" text="Проверьте сведения перед отправкой запроса сети." /><dl className="mt-7 divide-y divide-line border-y border-line">{rows.map(([label, value]) => <div key={label} className="grid gap-1 py-3.5 sm:grid-cols-[1fr_1.4fr]"><dt className="text-sm text-slate-500">{label}</dt><dd className="text-sm font-semibold text-ink sm:text-right">{value}</dd></div>)}</dl><div className="mt-5 flex items-start gap-3 border border-moss-200 bg-moss-50 px-4 py-3 text-sm leading-5 text-moss-800"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /><span><strong className="block">Всё готово к отправке</strong>Мы создадим одноразовую ссылку для подтверждения поставки.</span></div></div>;
+  return <div><StepHeading number="03" title="Проверка и отправка" text="Проверьте итоговые данные перед отправкой запроса сети." /><dl className="mt-7 divide-y divide-line border-y border-line">{rows.map(([label, value]) => <div key={label} className="grid gap-1 py-3.5 sm:grid-cols-[1fr_1.4fr]"><dt className="text-sm text-slate-500">{label}</dt><dd className="text-sm font-semibold text-ink sm:text-right">{value}</dd></div>)}</dl><div className="mt-5 flex items-start gap-3 border border-moss-200 bg-moss-50 px-4 py-3 text-sm leading-5 text-moss-800"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /><span><strong className="block">Всё готово к отправке</strong>Мы создадим одноразовую ссылку для подтверждения поставки.</span></div></div>;
 }
 
 function StepHeading({ number, title, text }: { number: string; title: string; text: string }) {

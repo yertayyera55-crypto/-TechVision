@@ -61,16 +61,20 @@ def run() -> None:
         page.goto(f"{BASE_URL}/applications/new")
         page.wait_for_load_state("networkidle")
 
-        page.locator("#network").select_option(label="Green Market")
+        page.locator("#file-contract").set_input_files(
+            {"name": "contract-proof.pdf", "mimeType": "application/pdf", "buffer": PDF}
+        )
+        expect(page.get_by_text("contract-proof.pdf", exact=True)).to_be_visible()
+        page.get_by_role("button", name="Проверить данные", exact=True).click()
+        page.locator("#network").fill("Green Market")
         page.locator("#amount").fill("750000")
         page.locator("#invoiceNumber").fill("DOC-STORAGE-1")
-        page.get_by_role("button", name="Далее", exact=False).click()
-        page.get_by_role("button", name="Далее", exact=False).click()
+        page.locator("summary").click()
 
         for field_id, name, mime_type, buffer in [
             ("file-invoice", "invoice-proof.pdf", "application/pdf", PDF),
             ("file-bill", "bill-proof.pdf", "application/pdf", PDF),
-            ("file-contract", "contract-proof.pdf", "application/pdf", PDF),
+            ("file-acceptance", "acceptance-proof.pdf", "application/pdf", PDF),
         ]:
             page.locator(f"#{field_id}").set_input_files(
                 {"name": name, "mimeType": mime_type, "buffer": buffer}
@@ -78,11 +82,15 @@ def run() -> None:
             expect(page.get_by_text(name, exact=True)).to_be_visible()
 
         expect(page.get_by_role("button", name="Открыть", exact=True)).to_have_count(3)
+        page.wait_for_timeout(500)
 
-        # Метаданные и Blob должны пережить reload на третьем шаге.
+        # Метаданные и Blob должны пережить reload на шаге проверки.
         page.reload()
         page.wait_for_load_state("networkidle")
+        page.locator("summary").click()
         expect(page.get_by_text("invoice-proof.pdf", exact=True)).to_be_visible()
+        page.get_by_role("button", name="Назад", exact=True).click()
+        expect(page.get_by_text("contract-proof.pdf", exact=True)).to_be_visible()
         with page.expect_popup() as popup_info:
             page.get_by_role("button", name="Открыть", exact=True).first.click()
         popup = popup_info.value
@@ -91,7 +99,8 @@ def run() -> None:
         expect(popup.get_by_role("link", name="Скачать документ")).to_be_visible()
         popup.close()
 
-        page.get_by_role("button", name="Далее", exact=False).click()
+        page.get_by_role("button", name="Проверить данные", exact=True).click()
+        page.get_by_role("button", name="Перейти к отправке", exact=True).click()
         page.get_by_role("button", name="Отправить заявку", exact=True).click()
         expect(page.get_by_role("heading", name="Заявка отправлена", exact=True)).to_be_visible()
         page.get_by_role("link", name="Перейти к заявке", exact=False).click()

@@ -8,6 +8,10 @@ export interface ProfitabilityInput {
   offer: Omit<FactoringOffer, "netAmount">;
 }
 
+export function calculateFinancingCost(financingAmount: number, termDays: number, annualRatePercent = demoRules.factoring.annualRatePercent) {
+  return Math.round(financingAmount * (annualRatePercent / 100) * Math.max(termDays, 0) / 365);
+}
+
 export function calculateProfitability(input: ProfitabilityInput): { analysis: ProfitabilityAnalysis; offer: FactoringOffer } {
   const { revenue, costAmount, productionExpenses } = input;
   const totalFactoringCost = input.offer.financingCost + input.offer.documentFees + input.offer.otherFees + input.offer.taxExpenses + input.offer.platformFee;
