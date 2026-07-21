@@ -5,13 +5,14 @@ import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Info, ShieldCheck } 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileUploader } from "@/components/form/file-uploader";
+import { DocumentAnalysisPanel } from "@/components/form/document-analysis-panel";
 import { FormField } from "@/components/form/form-field";
 import { StepIndicator } from "@/components/form/step-indicator";
 import { PrimaryButton, SecondaryButton, primaryLinkClass, secondaryLinkClass } from "@/components/ui/buttons";
 import { useApplications } from "@/lib/application-store";
 import { defaultContractConditions, networkOptions } from "@/lib/demo-data";
 import { calculateDays, formatCurrency, formatDate } from "@/lib/format";
-import { Application, ApplicationDocument, ApplicationDraft, DocumentType } from "@/lib/types";
+import { Application, ApplicationDocument, ApplicationDraft, ContractAnalysisResult, DocumentType } from "@/lib/types";
 
 const DRAFT_KEY = "mighty-miners-application-draft-v1";
 const emptyDraft: ApplicationDraft = { network: "", amount: "", invoiceNumber: "", deliveryDate: "2026-07-18", paymentDate: "2026-10-16", documents: {}, step: 1 };
@@ -45,6 +46,19 @@ export function ApplicationWizard() {
   const update = <K extends keyof ApplicationDraft>(key: K, value: ApplicationDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: "" }));
+  };
+
+  const applyAnalysis = (analysis: ContractAnalysisResult) => {
+    setDraft((current) => ({
+      ...current,
+      network: analysis.network ?? analysis.buyerName ?? current.network,
+      amount: analysis.amount !== null ? String(analysis.amount) : current.amount,
+      invoiceNumber: analysis.invoiceNumber ?? current.invoiceNumber,
+      deliveryDate: analysis.deliveryDate ?? current.deliveryDate,
+      paymentDate: analysis.paymentDueDate ?? current.paymentDate,
+    }));
+    setErrors({});
+    window.dispatchEvent(new CustomEvent("mm-toast", { detail: "Данные из договора подставлены в заявку" }));
   };
 
   const validate = () => {
@@ -127,7 +141,7 @@ export function ApplicationWizard() {
       <section key={draft.step} className="animate-scale-in border-y border-line bg-paper px-4 py-6 shadow-soft sm:rounded-lg sm:border sm:p-8">
         {draft.step === 1 && <StepSupply draft={draft} errors={errors} update={update} />}
         {draft.step === 2 && <StepDates draft={draft} errors={errors} update={update} termDays={termDays} />}
-        {draft.step === 3 && <StepDocuments draft={draft} error={errors.documents} update={update} />}
+        {draft.step === 3 && <StepDocuments draft={draft} error={errors.documents} update={update} onAnalysis={applyAnalysis} />}
         {draft.step === 4 && <StepReview draft={draft} termDays={termDays} documentsCount={documents.length} />}
         <div className="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:justify-between">
           {draft.step === 1 ? <SecondaryButton type="button" onClick={cancel}>Отмена</SecondaryButton> : <SecondaryButton type="button" onClick={() => setDraft((current) => ({ ...current, step: current.step - 1 }))}><ArrowLeft className="h-4 w-4" /> Назад</SecondaryButton>}
@@ -155,14 +169,15 @@ function StepDates({ draft, errors, update, termDays }: { draft: ApplicationDraf
   </div>{termDays > 0 && <div className="mt-6 flex items-center gap-3 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"><CalendarDays className="h-5 w-5 shrink-0 text-amber-700" /><span>Срок оплаты: <strong>{termDays} дней</strong></span></div>}</div>;
 }
 
-function StepDocuments({ draft, error, update }: { draft: ApplicationDraft; error?: string; update: UpdateDraft }) {
+function StepDocuments({ draft, error, update, onAnalysis }: { draft: ApplicationDraft; error?: string; update: UpdateDraft; onAnalysis: (analysis: ContractAnalysisResult) => void }) {
   const setDocument = (type: DocumentType, document?: ApplicationDocument) => update("documents", { ...draft.documents, [type]: document });
-  return <div><StepHeading number="03" title="Документы" text="Файлы сохраняются в этом браузере и доступны после обновления страницы." /><div className="mt-7 grid gap-3">
-    <FileUploader type="invoice" label="Накладная" value={draft.documents.invoice} onChange={(file) => setDocument("invoice", file)} />
-    <FileUploader type="bill" label="Счёт-фактура" value={draft.documents.bill} onChange={(file) => setDocument("bill", file)} />
-    <FileUploader type="contract" label="Договор" value={draft.documents.contract} onChange={(file) => setDocument("contract", file)} />
-    <FileUploader type="acceptance" label="Акт приёма" optional value={draft.documents.acceptance} onChange={(file) => setDocument("acceptance", file)} />
-  </div>{error && <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p>}<p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> Для MVP содержимое хранится локально в IndexedDB этого браузера и не переносится на другое устройство. В production оно будет храниться в закрытом Storage с контролем доступа.</p></div>;
+  return <div><StepHeading number="03" title="Загрузите документы" text="Договор можно проанализировать локальным Codex CLI и использовать для автозаполнения заявки." /><div className="mt-7 grid gap-3">
+    <FileUploader type="contract" label="Договор" value={draft.documents.contract} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("contract", file)} />
+    <DocumentAnalysisPanel contract={draft.documents.contract} supportingDocuments={[draft.documents.invoice, draft.documents.bill, draft.documents.acceptance].filter(Boolean) as ApplicationDocument[]} onUseDemo={(file) => setDocument("contract", file)} onApply={onAnalysis} />
+    <FileUploader type="invoice" label="Накладная" value={draft.documents.invoice} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("invoice", file)} />
+    <FileUploader type="bill" label="Счёт-фактура / ЭСФ" value={draft.documents.bill} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("bill", file)} />
+    <FileUploader type="acceptance" label="Другое подтверждение поставки" optional value={draft.documents.acceptance} accept=".pdf" allowedMimeTypes={["application/pdf"]} helpText="PDF до 10 МБ" onChange={(file) => setDocument("acceptance", file)} />
+  </div>{error && <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p>}<p className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500"><Info className="mt-0.5 h-4 w-4 shrink-0" /> Для MVP содержимое хранится локально в IndexedDB этого браузера и не переносится на другое устройство. В production файлы будут храниться в закрытом Storage с контролем доступа.</p></div>;
 }
 
 function StepReview({ draft, termDays, documentsCount }: { draft: ApplicationDraft; termDays: number; documentsCount: number }) {

@@ -219,3 +219,17 @@ export interface ApplicationDraft {
   documents: Partial<Record<DocumentType, ApplicationDocument>>;
   step: number;
 }
+
+export interface ContractAnalysisResult {
+  supplierName: string | null;
+  buyerName: string | null;
+  network: string | null;
+  invoiceNumber: string | null;
+  amount: number | null;
+  deliveryDate: string | null;
+  paymentDueDate: string | null;
+  paymentTermDays: number | null;
+  factoringReady: boolean;
+  missingData: string[];
+  notes: string[];
+}

@@ -24,8 +24,29 @@ export function DocumentActions({ document, compact = false, onReplace }: { docu
       setLoading("open");
       const file = await getRequiredFile(document);
       const url = URL.createObjectURL(file.blob);
-      if (preview) preview.location.href = url;
-      else window.location.href = url;
+      const isPdf = document.mimeType === "application/pdf" || document.name.toLowerCase().endsWith(".pdf");
+      if (preview && isPdf) {
+        // A few browsers keep a PDF blob tab at about:blank. Embedding it in
+        // a tiny preview shell keeps the document visible and adds a fallback.
+        const popupDocument = preview.document;
+        popupDocument.title = document.name;
+        popupDocument.body.replaceChildren();
+        const frame = popupDocument.createElement("iframe");
+        frame.title = "Предпросмотр документа";
+        frame.src = url;
+        frame.style.cssText = "display:block;width:100vw;height:calc(100vh - 42px);border:0";
+        const fallback = popupDocument.createElement("a");
+        fallback.href = url;
+        fallback.download = document.name;
+        fallback.textContent = "Скачать документ";
+        fallback.style.cssText = "display:block;padding:12px;font:14px system-ui;color:#24572a";
+        popupDocument.body.append(frame, fallback);
+        preview.focus();
+      } else if (preview) {
+        preview.location.replace(url);
+      } else {
+        window.location.href = url;
+      }
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) {
       preview?.close();

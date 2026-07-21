@@ -3,7 +3,7 @@ import { access } from "node:fs/promises";
 import net from "node:net";
 import process from "node:process";
 
-const MINIMUM_NODE = { major: 20, minor: 9 };
+const MINIMUM_NODE = { major: 20, minor: 16 };
 const noOpen = process.argv.includes("--no-open");
 const help = process.argv.includes("--help") || process.argv.includes("-h");
 
@@ -72,7 +72,7 @@ function assertSupportedNode() {
   const [major, minor] = process.versions.node.split(".").map(Number);
   const supported = major > MINIMUM_NODE.major || (major === MINIMUM_NODE.major && minor >= MINIMUM_NODE.minor);
   if (!supported) {
-    console.error(`Нужен Node.js 20.9 или новее. Сейчас установлен ${process.versions.node}.`);
+    console.error(`Нужен Node.js 20.16 или новее. Сейчас установлен ${process.versions.node}.`);
     console.error("Скачайте LTS-версию: https://nodejs.org/");
     process.exit(1);
   }
