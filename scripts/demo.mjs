@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { access } from "node:fs/promises";
+import { access, readFile, rm } from "node:fs/promises";
 import net from "node:net";
 import process from "node:process";
 
@@ -28,6 +28,14 @@ if (!(await exists("node_modules/next/package.json"))) {
     console.error("\nНе удалось установить зависимости. Проверьте интернет и повторите npm run demo.");
     process.exit(install.status ?? 1);
   }
+}
+
+const runningServer = await findRunningDevServer();
+if (runningServer) {
+  console.log(`\n✅ Mighty Miners уже запущен: ${runningServer.url}`);
+  console.log(`   PID: ${runningServer.pid}. Повторный сервер не требуется.\n`);
+  if (!noOpen) openBrowser(runningServer.url);
+  process.exit(0);
 }
 
 const port = await findFreePort(3000);
@@ -92,6 +100,40 @@ async function findFreePort(startPort) {
     if (await isPortFree(port)) return port;
   }
   throw new Error("Не найден свободный порт между 3000 и 3019.");
+}
+
+async function findRunningDevServer() {
+  const lockPath = ".next/dev/lock";
+  try {
+    const lock = JSON.parse(await readFile(lockPath, "utf8"));
+    if (!Number.isInteger(lock.pid) || !Number.isInteger(lock.port)) return null;
+
+    if (!isProcessRunning(lock.pid)) {
+      await rm(lockPath, { force: true });
+      return null;
+    }
+
+    const url = typeof lock.appUrl === "string"
+      ? lock.appUrl
+      : `http://${typeof lock.hostname === "string" ? lock.hostname : "127.0.0.1"}:${lock.port}`;
+
+    console.log(`\n⏳ Найден уже запущенный сервер Next.js: ${url}`);
+    return { pid: lock.pid, url };
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      await rm(lockPath, { force: true });
+    }
+    return null;
+  }
+}
+
+function isProcessRunning(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error?.code === "EPERM";
+  }
 }
 
 function isPortFree(port) {
